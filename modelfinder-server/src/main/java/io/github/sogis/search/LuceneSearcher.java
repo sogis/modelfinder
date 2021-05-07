@@ -99,6 +99,13 @@ public class LuceneSearcher {
                 // https://github.com/claeis/ili2c/blob/0ae11f639c3557e93e0e08e9d6b780741aaa1ded/src/main/java/ch/interlis/ili2c/ListModels2.java#L59
                 // Nur die latestVersions (der Modelle?) lesen. Anschliessend Diff bilden, um die
                 // nicht mehr gültigen explizit markieren zu können.
+                
+                
+                // TODO
+                // Eigene eindeutige ID hinzufügen, damit via URL gearbeitet werden kann.
+                // Dann muss ich aber zwingend auch an das Dokument mit genau dieser ID 
+                // kommen. Wie? Spezielle Query mit nur dieser ID.
+                // Kurzer Hash oder so.
 
                 RepositoryAccess repoAccess = new RepositoryAccess();
                 IliFiles iliFiles = repoAccess.getIliFiles(repository);
