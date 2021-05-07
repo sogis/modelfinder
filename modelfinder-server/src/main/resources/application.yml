@@ -28,7 +28,14 @@ spring:
 #         active: test 
 
 # ========================
-# SPRING
+# APPLICATION
 # ========================
 app:
     myVar: ${VAR:defaultValue}
+    repositories:
+      - http://models.geo.admin.ch
+      #- https://geo.so.ch/models
+    default-repositories:
+      - http://models.interlis.ch/ 
+      - http://models.geo.kgk-cgc.ch/ 
+      - http://models.geo.admin.ch/ 

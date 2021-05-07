@@ -44,13 +44,46 @@
       <version>0.8.5</version>
     </dependency>
     -->
-    
+    <dependency>
+      <groupId>org.apache.lucene</groupId>
+      <artifactId>lucene-core</artifactId>
+      <version>8.6.1</version>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.lucene</groupId>
+      <artifactId>lucene-queryparser</artifactId>
+      <version>8.6.1</version>
+    </dependency>
+    <dependency>
+      <groupId>ch.interlis</groupId>
+      <artifactId>iox-ili</artifactId>
+      <version>1.21.6</version>
+    </dependency>
+    <dependency>
+      <groupId>ch.interlis</groupId>
+      <artifactId>ili2c-tool</artifactId>
+      <version>5.2.2</version>
+    </dependency>
+    <dependency>
+      <groupId>ch.interlis</groupId>
+      <artifactId>ili2c-core</artifactId>
+      <version>5.2.2</version>
+    </dependency>
+
   </dependencies>
   <repositories>
     <repository>
       <id>spring-milestone</id>
       <name>Spring milestone</name>
       <url>https://repo.spring.io/milestone</url>
+    </repository>
+    <repository>
+      <id>eisenhut</id>
+      <url>http://jars.interlis.ch/</url>
+      <snapshots>
+        <updatePolicy>always</updatePolicy>
+        <checksumPolicy>fail</checksumPolicy>
+      </snapshots>
     </repository>
   </repositories>
 
