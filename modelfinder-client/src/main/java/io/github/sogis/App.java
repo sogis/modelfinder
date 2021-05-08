@@ -140,9 +140,6 @@ public class App implements EntryPoint {
         
 	    container.appendChild(div().id("suggestbox-div").add(suggestBox).element());
 	            
-	    body().add(container);
-        
-        
-        console.log("fubar foo bar");
+	    body().add(container);        
 	}
 }
