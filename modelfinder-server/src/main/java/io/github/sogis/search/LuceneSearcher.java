@@ -22,6 +22,7 @@ import org.apache.lucene.document.Document;
 import org.apache.lucene.document.DoubleDocValuesField;
 import org.apache.lucene.document.TextField;
 import org.apache.lucene.document.Field.Store;
+import org.apache.lucene.document.StoredField;
 import org.apache.lucene.index.DirectoryReader;
 import org.apache.lucene.index.IndexReader;
 import org.apache.lucene.index.IndexWriter;
@@ -46,15 +47,18 @@ import org.springframework.stereotype.Repository;
 
 import ch.interlis.ili2c.Ili2c;
 import ch.interlis.ili2c.Ili2cException;
+import ch.interlis.ili2c.ListModels2;
 import ch.interlis.ili2c.config.Configuration;
 import ch.interlis.ili2c.metamodel.Model;
 import ch.interlis.ili2c.metamodel.TransferDescription;
 import ch.interlis.ili2c.modelscan.IliFile;
 import ch.interlis.ilirepository.IliFiles;
 import ch.interlis.ilirepository.IliManager;
+import ch.interlis.ilirepository.impl.ModelLister;
 import ch.interlis.ilirepository.impl.ModelMetadata;
 import ch.interlis.ilirepository.impl.RepositoryAccess;
 import ch.interlis.ilirepository.impl.RepositoryAccessException;
+import ch.interlis.ilirepository.impl.RepositoryVisitor;
 import io.github.sogis.Settings;
 
 @Repository("LuceneSearcher")
@@ -67,22 +71,26 @@ public class LuceneSearcher {
 //    NIOFSDirectory oldIndex;
     static final String INDEX_DIR = "/Users/stefan/tmp/lucene/"; 
     NIOFSDirectory fsIndex;
+    IndexWriter writer;
     StandardAnalyzer analyzer;
     private QueryParser queryParser;
 
+    @PostConstruct
+    public void init() throws IOException {
+//      Path indexDir = Files.createTempDirectory(Paths.get(System.getProperty("java.io.tmpdir")), "modelfinder_idx");
+      Path indexDir = Paths.get(INDEX_DIR);
+      log.info("Index folder: " + indexDir);
+      
+      this.fsIndex = new NIOFSDirectory(indexDir);
+      this.analyzer = new StandardAnalyzer();   
+    }
+    
     // PostConstruct: Anwendung ist noch nicht fertig gestartet / ready -> Abklären wegen liveness und readyness probes.
     //@PostConstruct
-    public void init() throws IOException {
+    public void createIndex() throws IOException {
         log.info("Building index ...");
-        
-//        Path indexDir = Files.createTempDirectory(Paths.get(System.getProperty("java.io.tmpdir")), "modelfinder_idx");
-        Path indexDir = Paths.get(INDEX_DIR);
-        log.info("Index folder: " + indexDir);
-        
-        fsIndex = new NIOFSDirectory(indexDir);
-        analyzer = new StandardAnalyzer();
         IndexWriterConfig indexWriterConfig = new IndexWriterConfig(analyzer);
-        IndexWriter writer = new IndexWriter(fsIndex, indexWriterConfig);
+        writer = new IndexWriter(fsIndex, indexWriterConfig);
         writer.prepareCommit();  
         
         writer.deleteAll();
@@ -92,96 +100,102 @@ public class LuceneSearcher {
             manager.setRepositories(settings.getDefaultRepositories().toArray(new String[0]));
 
             List<String> repositories = settings.getRepositories();
-            for (String repository : repositories) {
-                log.info(repository);
-                
-                // TODO
-                // https://github.com/claeis/ili2c/blob/0ae11f639c3557e93e0e08e9d6b780741aaa1ded/src/main/java/ch/interlis/ili2c/ListModels2.java#L59
-                // Nur die latestVersions (der Modelle?) lesen. Anschliessend Diff bilden, um die
-                // nicht mehr gültigen explizit markieren zu können.
-                
-                
-                // TODO
-                // Eigene eindeutige ID hinzufügen, damit via URL gearbeitet werden kann.
-                // Dann muss ich aber zwingend auch an das Dokument mit genau dieser ID 
-                // kommen. Wie? Spezielle Query mit nur dieser ID.
-                // Kurzer Hash oder so.
+            RepositoryAccess repoAccess = new RepositoryAccess();
+            
+            // Mit RepositoryVisitor ist "file" qualifiziert, d.h. mit Repo-Basis-URL, d.h.
+            // eine vollständige URL.
+            ModelLister modelLister=new ModelLister();
+            modelLister.setIgnoreDuplicates(true);
+            RepositoryVisitor visitor=new RepositoryVisitor(repoAccess, modelLister);
+            visitor.setRepositories(repositories.toArray(new String[repositories.size()]));
+            visitor.visitRepositories();
+            
+            List<ModelMetadata> mergedModelMetadatav = modelLister.getResult2();
+            log.info("{}", mergedModelMetadatav.size());
+            
+            //only latest versions
+            //mergedModelMetadatav=RepositoryAccess.getLatestVersions2(mergedModelMetadatav);
+            List<ModelMetadata> latestMergedModelMetadatav = RepositoryAccess.getLatestVersions2(mergedModelMetadatav);
+            log.info("{}", latestMergedModelMetadatav.size());
+            
+            List<ModelMetadata> precursorModelMetadata = new ArrayList<ModelMetadata>(mergedModelMetadatav);
+            precursorModelMetadata.removeAll(latestMergedModelMetadatav);
+            log.info("{}", precursorModelMetadata.size());
 
-                RepositoryAccess repoAccess = new RepositoryAccess();
-                IliFiles iliFiles = repoAccess.getIliFiles(repository);
-                log.info(iliFiles.toString());
-
-                List<ModelMetadata> modelMetadataList = repoAccess.readIlimodelsXml2(repository);
-                for (ModelMetadata modelMetadata : modelMetadataList) {
-                    Document document = new Document();
-                    document.add(new TextField("name", modelMetadata.getName(), Store.YES));
-                    document.add(new TextField("version", modelMetadata.getVersion(), Store.YES));
-                    document.add(new TextField("file", modelMetadata.getFile(), Store.YES));
-                    document.add(new TextField("repository", repository, Store.YES));
-                    if (modelMetadata.getFile().contains("replaced") || modelMetadata.getFile().contains("obsolete")) {
-                        document.add(new DoubleDocValuesField("boost", 0.5));
-                    }
-                    if (modelMetadata.getIssuer() != null) {
-                        document.add(new TextField("issuer", modelMetadata.getIssuer(), Store.YES));
-                    }
-                    if (modelMetadata.getPrecursorVersion() != null) {
-                        document.add(new TextField("precursorversion", modelMetadata.getPrecursorVersion(), Store.YES));
-                    }
-                    if (modelMetadata.getTechnicalContact() != null) {
-                        document.add(new TextField("technicalcontact", modelMetadata.getTechnicalContact(), Store.YES));
-                    } 
-                    if (modelMetadata.getFurtherInformation() != null) {
-                        document.add(new TextField("furtherinformation", modelMetadata.getFurtherInformation(), Store.YES));
-                    } 
-                    if (modelMetadata.getFurtherInformation() != null) {
-                        document.add(new TextField("md5", modelMetadata.getMd5(), Store.YES));
-                    }                     
-                    if (!modelMetadata.getSchemaLanguage().equalsIgnoreCase(modelMetadata.ili1)) {                    
-                        ArrayList<String> ilifiles = new ArrayList<String>();
-                        ilifiles.add(modelMetadata.getName());
-                        Configuration config = manager.getConfigWithFiles(ilifiles);
-                        TransferDescription td = Ili2c.runCompiler(config);
-    
-                        Model model = td.getLastModel();
-                        ch.ehi.basics.settings.Settings msettings = model.getMetaValues();
-                        Iterator<String> jt = msettings.getValuesIterator();
-                        while (jt.hasNext()) {
-                            String key = jt.next();
-                            if (key.equalsIgnoreCase("IDGeoIV")) {
-                                document.add(new TextField("idgeoiv", msettings.getValue(key), Store.YES));
-                            }                        
-                        }
-                    }
-                    
-                    // TODO: whole model as text
-
-                    writer.addDocument(document);
-                }           
-            }      
-        } catch (RepositoryAccessException | Ili2cException e) {
+            // TODO
+            // Eigene eindeutige ID hinzufügen, damit via URL gearbeitet werden kann.
+            // Dann muss ich aber zwingend auch an das Dokument mit genau dieser ID 
+            // kommen. Wie? Spezielle Query mit nur dieser ID.
+            // Kurzer Hash oder so.
+            for (ModelMetadata modelMetadata : latestMergedModelMetadatav) {
+                addDocument(modelMetadata, false);
+            }
+            
+            for (ModelMetadata modelMetadata : precursorModelMetadata) {
+                addDocument(modelMetadata, true);
+            }
+            
+//        } catch (RepositoryAccessException | Ili2cException e) {
+        } catch (RepositoryAccessException e) {
             e.printStackTrace();
             log.error(e.getMessage());
             writer.rollback();
         }
         
         writer.commit();
-        writer.close();
-        
-//        Iterator<IliFile> it = iliFiles.iteratorFile();
-//        while(it.hasNext()) {
-//            IliFile iliFile = it.next();
-//            log.info(iliFile.getFilename().toString());
-//        }
-        
-//        this.oldIndex = this.fsIndex;
-//        this.fsIndex = tmpIndex;
-//        
-//        if (this.oldIndex != null) {
-//            log.info("*********************");
-//            log.info(oldIndex.getDirectory().toFile().getAbsolutePath());
-//        }
+        writer.close();        
     }
 
+    private void addDocument(ModelMetadata modelMetadata, boolean isPrecursorVersion) throws IOException {
+        Document document = new Document();
+        if (isPrecursorVersion) {
+            document.add(new StoredField("dispname", modelMetadata.getName() + " (" + modelMetadata.getVersion() + ") precursor version"));
+        } else {
+            document.add(new StoredField("dispname", modelMetadata.getName() + " (" + modelMetadata.getVersion() + ")"));
+        }
+        document.add(new TextField("name", modelMetadata.getName(), Store.YES));
+        document.add(new TextField("version", modelMetadata.getVersion(), Store.YES));
+        document.add(new TextField("file", modelMetadata.getFile(), Store.YES));
+        if (modelMetadata.getFile().contains("replaced") || modelMetadata.getFile().contains("obsolete")) {
+            document.add(new DoubleDocValuesField("boost", 0.5));
+        }
+        if (modelMetadata.getIssuer() != null) {
+            document.add(new TextField("issuer", modelMetadata.getIssuer(), Store.YES));
+        }
+        if (modelMetadata.getPrecursorVersion() != null) {
+            document.add(new TextField("precursorversion", modelMetadata.getPrecursorVersion(), Store.YES));
+        }
+        if (modelMetadata.getTechnicalContact() != null) {
+            document.add(new TextField("technicalcontact", modelMetadata.getTechnicalContact(), Store.YES));
+        }
+        if (modelMetadata.getFurtherInformation() != null) {
+            document.add(new TextField("furtherinformation", modelMetadata.getFurtherInformation(), Store.YES));
+        }
+        if (modelMetadata.getFurtherInformation() != null) {
+            document.add(new TextField("md5", modelMetadata.getMd5(), Store.YES));
+        }
+//        if (!modelMetadata.getSchemaLanguage().equalsIgnoreCase(modelMetadata.ili1)) {
+//            ArrayList<String> ilifiles = new ArrayList<String>();
+//            ilifiles.add(modelMetadata.getName());
+//            Configuration config = manager.getConfigWithFiles(ilifiles);
+//            TransferDescription td = Ili2c.runCompiler(config);
+//
+//            Model model = td.getLastModel();
+//            ch.ehi.basics.settings.Settings msettings = model.getMetaValues();
+//            Iterator<String> jt = msettings.getValuesIterator();
+//            while (jt.hasNext()) {
+//                String key = jt.next();
+//                if (key.equalsIgnoreCase("IDGeoIV")) {
+//                    document.add(new TextField("idgeoiv", msettings.getValue(key), Store.YES));
+//                }
+//            }
+//        }
+
+        // TODO: whole model as text
+
+        writer.addDocument(document);
+    }
+    
     @PreDestroy
     private void close() {
         try {
@@ -208,8 +222,8 @@ public class LuceneSearcher {
         Query query;
         TopDocs documents;
         TotalHitCountCollector collector = null;
-        try {
-            reader = DirectoryReader.open(fsIndex);
+        try {            
+            reader = DirectoryReader.open(this.fsIndex);
             indexSearcher = new IndexSearcher(reader);
             queryParser = new QueryParser("name", analyzer); // 'name' is default field if we don't prefix search string
             queryParser.setAllowLeadingWildcard(true);
@@ -223,7 +237,7 @@ public class LuceneSearcher {
                 // Das Feld, welches bestimmend sein soll (also in der Suche zuoberst gelistet), bekommt
                 // einen sehr hohen Boost.
                 luceneQueryString += "(name:*" + token + "*^10 OR "
-                        + "version:*" + token + "* OR "
+                        //+ "version:*" + token + "* OR "
                         + "file:*" + token + "* OR "
                         + "issuer:*" + token + "* OR "
                         + "technicalcontact:*" + token + "* OR "

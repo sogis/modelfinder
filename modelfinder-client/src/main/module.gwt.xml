@@ -10,7 +10,7 @@
   <inherits name="org.dominokit.domino.ui.DominoUI" />
   <inherits name="ol.GwtOL" />
   <inherits name="proj4.GwtProj4" />
-        
+
   <source path="" />
 
   <entry-point class="io.github.sogis.App" />

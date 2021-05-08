@@ -1,7 +1,7 @@
 body {
   margin: 0px;
   padding: 0px;
-  background: #fafafa; 
+  background: #FFFFFF; 
 }
 
 body, div {
@@ -11,3 +11,31 @@ body, div {
 #map {
   height: 100%;
 }
+
+#container {
+    margin-left: auto;
+    margin-right: auto;
+    width: 1400px;
+    max-width: 66%;
+    background-color: #FFFFFF;        
+}
+
+#top-level-content {
+    margin-top: 120px;
+}
+
+.field-group input, .field-group textarea {
+    /*font-family: 'Fira Sans', sans-serif !important;*/
+    font-family: Frutiger, 'Noto Sans JP', 'Barlow', 'Fira Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif !important;   
+    font-size: 16px;   
+    font-weight: 300;     
+}
+
+.field-group .field-label {
+    font-size: 12px;
+    font-weight: 300;   
+}
+
+.dropdown-menu>li>a {
+    font-weight: 300;
+} 

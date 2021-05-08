@@ -24,10 +24,11 @@ public class Application extends SpringBootServletInitializer {
     }
 
     // Anwendung ist fertig gestartet.
+    // Eigener Health-Check implementieren? Irgendwie wenn Index ready?
     @Bean
-    public CommandLineRunner init(LuceneSearcher luceneSearcher) {
+    public CommandLineRunner init(LuceneSearcher searcher) {
         return args -> {
-            //luceneSearcher.init();
+            //searcher.createIndex();
         };
     }
 

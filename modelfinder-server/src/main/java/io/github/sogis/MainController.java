@@ -48,7 +48,8 @@ public class MainController {
     public ResponseEntity<String> ping()  {
         
         try {
-            searcher.init();
+            // TODO: Wann soll/muss das beim Hochfahren passieren?
+            searcher.createIndex();
         } catch (IOException e) {
             e.printStackTrace();
         } 
@@ -75,10 +76,11 @@ public class MainController {
                 //.distinct()
                 .map(r -> {                    
                     ModelInfo modelInfo = new ModelInfo();
+                    modelInfo.setDisplayName(r.get("dispname"));
                     modelInfo.setName(r.get("name"));
                     modelInfo.setVersion(r.get("version"));
                     modelInfo.setFile(r.get("file"));
-                    modelInfo.setRepository(r.get("repository"));
+                    //modelInfo.setRepository(r.get("repository"));
                     modelInfo.setIssuer(r.get("issuer"));
                     modelInfo.setFurtherInformation(r.get("furtherinformation"));
                     modelInfo.setPrecursorVersion(r.get("precursorversion"));
