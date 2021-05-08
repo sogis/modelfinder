@@ -70,10 +70,12 @@ public class LuceneSearcher {
 
 //    NIOFSDirectory oldIndex;
     static final String INDEX_DIR = "/Users/stefan/tmp/lucene/"; 
-    NIOFSDirectory fsIndex;
-    IndexWriter writer;
-    StandardAnalyzer analyzer;
+    private NIOFSDirectory fsIndex;
+    private IndexWriter writer;
+    private StandardAnalyzer analyzer;
     private QueryParser queryParser;
+    
+    private IliManager manager;
 
     @PostConstruct
     public void init() throws IOException {
@@ -135,8 +137,8 @@ public class LuceneSearcher {
                 addDocument(modelMetadata, true);
             }
             
-//        } catch (RepositoryAccessException | Ili2cException e) {
-        } catch (RepositoryAccessException e) {
+        } catch (RepositoryAccessException | Ili2cException e) {
+//        } catch (RepositoryAccessException e) {
             e.printStackTrace();
             log.error(e.getMessage());
             writer.rollback();
@@ -146,7 +148,7 @@ public class LuceneSearcher {
         writer.close();        
     }
 
-    private void addDocument(ModelMetadata modelMetadata, boolean isPrecursorVersion) throws IOException {
+    private void addDocument(ModelMetadata modelMetadata, boolean isPrecursorVersion) throws IOException, Ili2cException {
         Document document = new Document();
         if (isPrecursorVersion) {
             document.add(new StoredField("dispname", modelMetadata.getName() + " (" + modelMetadata.getVersion() + ") precursor version"));
@@ -174,22 +176,22 @@ public class LuceneSearcher {
         if (modelMetadata.getFurtherInformation() != null) {
             document.add(new TextField("md5", modelMetadata.getMd5(), Store.YES));
         }
-//        if (!modelMetadata.getSchemaLanguage().equalsIgnoreCase(modelMetadata.ili1)) {
-//            ArrayList<String> ilifiles = new ArrayList<String>();
-//            ilifiles.add(modelMetadata.getName());
-//            Configuration config = manager.getConfigWithFiles(ilifiles);
-//            TransferDescription td = Ili2c.runCompiler(config);
-//
-//            Model model = td.getLastModel();
-//            ch.ehi.basics.settings.Settings msettings = model.getMetaValues();
-//            Iterator<String> jt = msettings.getValuesIterator();
-//            while (jt.hasNext()) {
-//                String key = jt.next();
-//                if (key.equalsIgnoreCase("IDGeoIV")) {
-//                    document.add(new TextField("idgeoiv", msettings.getValue(key), Store.YES));
-//                }
-//            }
-//        }
+        if (!modelMetadata.getSchemaLanguage().equalsIgnoreCase(modelMetadata.ili1)) {
+            ArrayList<String> ilifiles = new ArrayList<String>();
+            ilifiles.add(modelMetadata.getName());
+            Configuration config = manager.getConfigWithFiles(ilifiles);
+            TransferDescription td = Ili2c.runCompiler(config);
+
+            Model model = td.getLastModel();
+            ch.ehi.basics.settings.Settings msettings = model.getMetaValues();
+            Iterator<String> jt = msettings.getValuesIterator();
+            while (jt.hasNext()) {
+                String key = jt.next();
+                if (key.equalsIgnoreCase("IDGeoIV")) {
+                    document.add(new TextField("idgeoiv", msettings.getValue(key), Store.YES));
+                }
+            }
+        }
 
         // TODO: whole model as text
 
