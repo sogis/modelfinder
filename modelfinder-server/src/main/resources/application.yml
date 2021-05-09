@@ -23,6 +23,15 @@ spring:
         restart:
             additional-exclude: launcherDir/**
 
+management:
+  health:
+    probes:
+      enabled: true
+  endpoint:
+    health: 
+      show-details: always
+
+
 # spring:
 #     profiles:
 #         active: test 
@@ -32,6 +41,7 @@ spring:
 # ========================
 app:
     myVar: ${VAR:defaultValue}
+    index-directory: ${indexDirectory:/tmp/}
     repositories:
       - http://models.geo.admin.ch
       #- https://geo.so.ch/models

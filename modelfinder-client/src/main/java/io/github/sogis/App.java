@@ -118,28 +118,79 @@ public class App implements EntryPoint {
         DropDownMenu suggestionsMenu = suggestBox.getSuggestionsMenu();
         suggestionsMenu.setPosition(new DropDownPositionDown());
         
+        container.appendChild(div().id("suggestbox-div").add(suggestBox).element());
+
+        HTMLElement resultContainer = div().id("result-container").element();       
+        container.appendChild(resultContainer);
+
         suggestBox.addSelectionHandler(new SelectionHandler() {
             @Override
             public void onSelection(Object value) {
+                if (resultContainer.firstChild != null) {
+                    resultContainer.removeChild(resultContainer.firstChild);
+                }
+                  
                 SuggestItem<ModelInfo> item = (SuggestItem<ModelInfo>) value;
                 ModelInfo result = (ModelInfo) item.getValue();
                 console.log(result.getDisplayName());
                 
-//                HTMLInputElement el =(HTMLInputElement) suggestBox.getInputElement().element();
-//                el.value = result.getLabel();
-//                
-//                CustomEventInit eventInit = CustomEventInit.create();
-//                eventInit.setDetail(result);
-//                eventInit.setBubbles(true);
-//                CustomEvent customEvent = new CustomEvent("startingPointChanged", eventInit);
-//                root.dispatchEvent(customEvent);
+                HTMLElement resultContent = div().id("result-content").element();
+                resultContent.appendChild(h(4, "Name").element());
+                resultContent.appendChild(p().textContent(result.getName()).element());
+                
+                resultContent.appendChild(h(4, "Version").element());
+                resultContent.appendChild(p().textContent(result.getVersion()).element());
+
+                resultContent.appendChild(h(4, "File").element());
+                resultContent.appendChild(p().add(
+                        a().css("result")
+                        .attr("href", result.getFile())
+                        .attr("target", "_blank").add(result.getFile()))
+                        .element());
+                
+                if (result.getIdgeoiv() != null) {
+                    resultContent.appendChild(h(4, "ID GeoIV").element());
+                    resultContent.appendChild(p().textContent(result.getIdgeoiv()).element());
+                }
+                
+                if (result.getFurtherInformation() != null) {
+                    resultContent.appendChild(h(4, "Further information").element());
+                    resultContent.appendChild(p().add(
+                            a().css("result")
+                            .attr("href", result.getFurtherInformation())
+                            .attr("target", "_blank").add(result.getFurtherInformation()))
+                            .element());
+                }
+
+                if (result.getIssuer() != null) {
+                    resultContent.appendChild(h(4, "Issuer").element());
+                    resultContent.appendChild(p().add(
+                            a().css("result")
+                            .attr("href", result.getIssuer())
+                            .attr("target", "_blank").add(result.getIssuer()))
+                            .element());
+                }
+
+                if (result.getTechnicalContact() != null) {
+                    resultContent.appendChild(h(4, "Technical contact").element());
+                    resultContent.appendChild(p().add(
+                            a().css("result")
+                            .attr("href", result.getTechnicalContact())
+                            .attr("target", "_blank").add(result.getTechnicalContact()))
+                            .element());
+                }
+
+                if (result.getPrecursorVersion() != null) {
+                    resultContent.appendChild(h(4, "Precursor version").element());
+                    resultContent.appendChild(p().textContent(result.getPrecursorVersion()).element());
+                }
+                
+                resultContainer.appendChild(resultContent);                
             }
         });
 
-        
-        
-	    container.appendChild(div().id("suggestbox-div").add(suggestBox).element());
-	            
+	    
+	    
 	    body().add(container);        
 	}
 }

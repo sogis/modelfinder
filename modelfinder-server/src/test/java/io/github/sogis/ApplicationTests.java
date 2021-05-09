@@ -25,7 +25,7 @@ class ApplicationTests {
     @Test
     public void index_Ok() throws Exception {
         assertThat(this.restTemplate.getForObject("http://localhost:" + port + "/index.html", String.class))
-                .contains("Web GIS Client • Kanton Solothurn");
+                .contains("INTERLIS model finder");
     }
 
 }

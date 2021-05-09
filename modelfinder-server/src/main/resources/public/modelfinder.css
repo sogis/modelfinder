@@ -2,6 +2,7 @@ body {
   margin: 0px;
   padding: 0px;
   background: #FFFFFF; 
+  color: #333333;
 }
 
 body, div {
@@ -39,3 +40,26 @@ body, div {
 .dropdown-menu>li>a {
     font-weight: 300;
 } 
+
+#result-container {
+    margin-top: 40px;
+}
+
+h4 {
+    font-size: 14px !important;
+}
+
+a.result {
+    color: #333333;
+    text-decoration: underline !important;
+} 
+
+a.result:hover {
+    color: #ef5350;
+    text-decoration: underline !important;
+}  
+
+a:result:visited {
+    color: #333333; 
+    /*text-decoration: underline !important;*/
+}

@@ -43,6 +43,7 @@ import org.apache.lucene.store.NIOFSDirectory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Repository;
 
 import ch.interlis.ili2c.Ili2c;
@@ -68,8 +69,9 @@ public class LuceneSearcher {
     @Autowired
     private Settings settings;
 
-//    NIOFSDirectory oldIndex;
-    static final String INDEX_DIR = "/Users/stefan/tmp/lucene/"; 
+    @Value("${app.index-directory}")
+    private String INDEX_DIR;
+
     private NIOFSDirectory fsIndex;
     private IndexWriter writer;
     private StandardAnalyzer analyzer;
@@ -77,6 +79,8 @@ public class LuceneSearcher {
     
     private IliManager manager;
 
+    // PostConstruct wird vor dem CommandLineRunner ausgeführt. Die Variablen müssen für das Erstellen
+    // des Index instanziert werden.
     @PostConstruct
     public void init() throws IOException {
 //      Path indexDir = Files.createTempDirectory(Paths.get(System.getProperty("java.io.tmpdir")), "modelfinder_idx");
@@ -98,7 +102,7 @@ public class LuceneSearcher {
         writer.deleteAll();
         
         try {
-            IliManager manager = new IliManager();
+            manager = new IliManager();
             manager.setRepositories(settings.getDefaultRepositories().toArray(new String[0]));
 
             List<String> repositories = settings.getRepositories();
@@ -113,16 +117,16 @@ public class LuceneSearcher {
             visitor.visitRepositories();
             
             List<ModelMetadata> mergedModelMetadatav = modelLister.getResult2();
-            log.info("{}", mergedModelMetadatav.size());
+            log.debug("mergedModelMetadatav: ", mergedModelMetadatav.size());
             
             //only latest versions
             //mergedModelMetadatav=RepositoryAccess.getLatestVersions2(mergedModelMetadatav);
             List<ModelMetadata> latestMergedModelMetadatav = RepositoryAccess.getLatestVersions2(mergedModelMetadatav);
-            log.info("{}", latestMergedModelMetadatav.size());
+            log.debug("latestMergedModelMetadatav: ", latestMergedModelMetadatav.size());
             
             List<ModelMetadata> precursorModelMetadata = new ArrayList<ModelMetadata>(mergedModelMetadatav);
             precursorModelMetadata.removeAll(latestMergedModelMetadatav);
-            log.info("{}", precursorModelMetadata.size());
+            log.debug("precursorModelMetadata", precursorModelMetadata.size());
 
             // TODO
             // Eigene eindeutige ID hinzufügen, damit via URL gearbeitet werden kann.
@@ -145,7 +149,9 @@ public class LuceneSearcher {
         }
         
         writer.commit();
-        writer.close();        
+        writer.close();       
+        
+        log.info("Index built.");
     }
 
     private void addDocument(ModelMetadata modelMetadata, boolean isPrecursorVersion) throws IOException, Ili2cException {
@@ -177,18 +183,21 @@ public class LuceneSearcher {
             document.add(new TextField("md5", modelMetadata.getMd5(), Store.YES));
         }
         if (!modelMetadata.getSchemaLanguage().equalsIgnoreCase(modelMetadata.ili1)) {
-            ArrayList<String> ilifiles = new ArrayList<String>();
-            ilifiles.add(modelMetadata.getName());
-            Configuration config = manager.getConfigWithFiles(ilifiles);
-            TransferDescription td = Ili2c.runCompiler(config);
+            // Nur MGDM haben eine IDGeoIV.
+            if (modelMetadata.getFile().contains("geo.admin.ch")) {
+                ArrayList<String> ilifiles = new ArrayList<String>();
+                ilifiles.add(modelMetadata.getName());
+                Configuration config = manager.getConfigWithFiles(ilifiles);
+                TransferDescription td = Ili2c.runCompiler(config);
 
-            Model model = td.getLastModel();
-            ch.ehi.basics.settings.Settings msettings = model.getMetaValues();
-            Iterator<String> jt = msettings.getValuesIterator();
-            while (jt.hasNext()) {
-                String key = jt.next();
-                if (key.equalsIgnoreCase("IDGeoIV")) {
-                    document.add(new TextField("idgeoiv", msettings.getValue(key), Store.YES));
+                Model model = td.getLastModel();
+                ch.ehi.basics.settings.Settings msettings = model.getMetaValues();
+                Iterator<String> jt = msettings.getValuesIterator();
+                while (jt.hasNext()) {
+                    String key = jt.next();
+                    if (key.equalsIgnoreCase("IDGeoIV")) {
+                        document.add(new TextField("idgeoiv", msettings.getValue(key), Store.YES));
+                    }
                 }
             }
         }
@@ -234,7 +243,7 @@ public class LuceneSearcher {
             String[] splitedQuery = queryString.split("\\s+");
             for (int i=0; i<splitedQuery.length; i++) {
                 String token = splitedQuery[i];
-                log.info("***"+token);
+                log.debug("token: " + token);
                 
                 // Das Feld, welches bestimmend sein soll (also in der Suche zuoberst gelistet), bekommt
                 // einen sehr hohen Boost.
@@ -262,7 +271,7 @@ public class LuceneSearcher {
                 indexSearcher.search(query, collector);
             }
             documents = indexSearcher.search(query, numRecords);
-            log.info("{}", documents.totalHits.value);
+            log.debug("documents.totalHits.value: ", documents.totalHits.value);
             List<Map<String, String>> mapList = new LinkedList<Map<String, String>>();
             for (ScoreDoc scoreDoc : documents.scoreDocs) {
                 Document document = indexSearcher.doc(scoreDoc.doc);
@@ -274,8 +283,8 @@ public class LuceneSearcher {
                 mapList.add(docMap);
             }
             
-            log.info("{}", mapList.size());
-            log.info("{}", numRecords);
+            log.debug("mapList.size()", mapList.size());
+            log.debug("numRecords: ", numRecords);
             
             Result result = new Result(mapList, mapList.size(),
                     collector == null ? (mapList.size() < numRecords ? mapList.size() : -1) : collector.getTotalHits());

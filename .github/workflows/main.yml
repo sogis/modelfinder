@@ -1,0 +1,28 @@
+name: modelfinder
+
+on: [push]
+
+jobs:
+  build:
+    env:
+      DOCKER_ACCOUNT: sogis
+      DOCKER_REPO: modelfinder
+      DOCKER_PASSWORD: ${{secrets.DOCKER_PASSWORD}}
+      DOCKER_USERNAME: ${{secrets.DOCKER_USERNAME}} 
+      BUILD_NUMBER: ${{ github.run_number }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Print new build number
+        run: echo "Build number is $BUILD_NUMBER"
+      - uses: actions/checkout@v1
+      - name: Build Jar and create Docker Image
+        run: |
+          ./mvnw clean package -Penv-prod
+          echo "$DOCKER_PASSWORD" | docker login --username "$DOCKER_USERNAME" --password-stdin
+          docker pull $DOCKER_ACCOUNT/$DOCKER_REPO:latest
+          docker build -t $DOCKER_ACCOUNT/$DOCKER_REPO:latest -f Dockerfile.jvm .
+      - name: Push Docker Images
+        run: |
+          echo "$DOCKER_PASSWORD" | docker login --username "$DOCKER_USERNAME" --password-stdin
+          docker images
+          docker push $DOCKER_ACCOUNT/$DOCKER_REPO:latest
