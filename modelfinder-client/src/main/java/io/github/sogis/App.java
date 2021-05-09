@@ -37,14 +37,6 @@ public class App implements EntryPoint {
     private NumberFormat fmtDefault = NumberFormat.getDecimalFormat();
     private NumberFormat fmtPercent = NumberFormat.getFormat("#0.0");
 
-//    // Projection
-//    private static final String EPSG_2056 = "EPSG:2056";
-//    private static final String EPSG_4326 = "EPSG:4326"; 
-//    private Projection projection;
-//
-//    private String MAP_DIV_ID = "map";
-//    private Map map;
-
 	public void onModuleLoad() {
 	    init();
 	}
@@ -132,7 +124,6 @@ public class App implements EntryPoint {
                   
                 SuggestItem<ModelInfo> item = (SuggestItem<ModelInfo>) value;
                 ModelInfo result = (ModelInfo) item.getValue();
-                console.log(result.getDisplayName());
                 
                 HTMLElement resultContent = div().id("result-content").element();
                 resultContent.appendChild(h(4, "Name").element());
