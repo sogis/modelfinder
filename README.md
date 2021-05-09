@@ -32,6 +32,6 @@ mvn gwt:codeserver -pl *-client -am -nsu
 - Rename packages
 - Docker images versioning. 
 - Build image with Maven?
-- Maven build noch ins Image verlagern
+- Maven build noch ins Image verlagern. Ist so ein wenig verfrickelt.
 - Tests
   * disable commandlinerunner in tests?
