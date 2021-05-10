@@ -1,0 +1,13 @@
+version: '3'
+services:
+  modelfinder:
+    image: sogis/modelfinder:latest
+    ports:
+      - "8080:8080"
+    restart: always
+  gateway:
+    build: ./caddy/
+    image: sogis/modelfinder-proxy:latest
+    restart: always
+    ports:
+      - "80:80"
