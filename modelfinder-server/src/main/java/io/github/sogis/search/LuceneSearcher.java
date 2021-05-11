@@ -128,21 +128,16 @@ public class LuceneSearcher {
             precursorModelMetadata.removeAll(latestMergedModelMetadatav);
             log.debug("precursorModelMetadata", precursorModelMetadata.size());
 
-            // TODO
-            // Eigene eindeutige ID hinzufügen, damit via URL gearbeitet werden kann.
-            // Dann muss ich aber zwingend auch an das Dokument mit genau dieser ID 
-            // kommen. Wie? Spezielle Query mit nur dieser ID.
-            // Kurzer Hash oder so.
             for (ModelMetadata modelMetadata : latestMergedModelMetadatav) {
                 addDocument(modelMetadata, false);
             }
             
-            for (ModelMetadata modelMetadata : precursorModelMetadata) {
-                addDocument(modelMetadata, true);
-            }
+            // Nur aktuell gültige in den Index schreiben.
+//            for (ModelMetadata modelMetadata : precursorModelMetadata) {
+//                addDocument(modelMetadata, true);
+//            }
             
         } catch (RepositoryAccessException | Ili2cException e) {
-//        } catch (RepositoryAccessException e) {
             e.printStackTrace();
             log.error(e.getMessage());
             writer.rollback();
@@ -156,12 +151,17 @@ public class LuceneSearcher {
 
     private void addDocument(ModelMetadata modelMetadata, boolean isPrecursorVersion) throws IOException, Ili2cException {
         Document document = new Document();
-        if (isPrecursorVersion) {
-            document.add(new StoredField("dispname", modelMetadata.getName() + " (" + modelMetadata.getVersion() + ") precursor version"));
-        } else {
-            document.add(new StoredField("dispname", modelMetadata.getName() + " (" + modelMetadata.getVersion() + ")"));
-        }
+//        if (isPrecursorVersion) {
+//            document.add(new StoredField("dispname", modelMetadata.getName() + " (" + modelMetadata.getVersion() + ") precursor version"));
+//        } else {
+//            document.add(new StoredField("dispname", modelMetadata.getName() + " (" + modelMetadata.getVersion() + ")"));
+//        }
+        
+        document.add(new StoredField("dispname", modelMetadata.getName()));
         document.add(new TextField("name", modelMetadata.getName(), Store.YES));
+        if (modelMetadata.getShortDescription() != null) {
+            document.add(new TextField("shortdescription", modelMetadata.getShortDescription(), Store.YES));
+        }
         document.add(new TextField("version", modelMetadata.getVersion(), Store.YES));
         document.add(new TextField("file", modelMetadata.getFile(), Store.YES));
         if (modelMetadata.getFile().contains("replaced") || modelMetadata.getFile().contains("obsolete")) {
@@ -182,22 +182,23 @@ public class LuceneSearcher {
         if (modelMetadata.getFurtherInformation() != null) {
             document.add(new TextField("md5", modelMetadata.getMd5(), Store.YES));
         }
+        
+        if (modelMetadata.getTags() != null) {
+            document.add(new TextField("tag", modelMetadata.getTags(), Store.YES));
+        }
+        
         if (!modelMetadata.getSchemaLanguage().equalsIgnoreCase(modelMetadata.ili1)) {
             // Nur MGDM haben eine IDGeoIV.
             if (modelMetadata.getFile().contains("geo.admin.ch")) {
-                ArrayList<String> ilifiles = new ArrayList<String>();
-                ilifiles.add(modelMetadata.getName());
-                Configuration config = manager.getConfigWithFiles(ilifiles);
-                TransferDescription td = Ili2c.runCompiler(config);
-
-                Model model = td.getLastModel();
-                ch.ehi.basics.settings.Settings msettings = model.getMetaValues();
-                Iterator<String> jt = msettings.getValuesIterator();
-                while (jt.hasNext()) {
-                    String key = jt.next();
-                    if (key.equalsIgnoreCase("IDGeoIV")) {
-                        document.add(new TextField("idgeoiv", msettings.getValue(key), Store.YES));
-                    }
+                // Weil es Rolf Z. gibt, der das pflegt, kann man
+                // den Tag auswerten, um an die IDGeoIV zu kommen.
+                // Ist zwar nur durch "Wissen" möglich, ist aber 
+                // momentan so und ich erspare mir das Parsen des
+                // Modelles. Wenn man später u.U. die Klassen kennen
+                // will, kann man immer noch darauf zurückommen.
+                                
+                if (modelMetadata.getTags() != null) {
+                    document.add(new TextField("idgeoiv", modelMetadata.getTags(), Store.YES));
                 }
             }
         }
@@ -244,6 +245,8 @@ public class LuceneSearcher {
             for (int i=0; i<splitedQuery.length; i++) {
                 String token = splitedQuery[i];
                 log.debug("token: " + token);
+                
+                // TODO: tag und shortdescription auswerten.
                 
                 // Das Feld, welches bestimmend sein soll (also in der Suche zuoberst gelistet), bekommt
                 // einen sehr hohen Boost.

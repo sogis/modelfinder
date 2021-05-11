@@ -45,6 +45,7 @@ app:
     repositories:
       - http://models.geo.admin.ch
       #- https://geo.so.ch/models
+      #- http://models.geo.gl.ch
     default-repositories:
       - http://models.interlis.ch/ 
       - http://models.geo.kgk-cgc.ch/ 

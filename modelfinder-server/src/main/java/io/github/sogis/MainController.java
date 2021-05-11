@@ -73,12 +73,12 @@ public class MainController {
                     modelInfo.setPrecursorVersion(r.get("precursorversion"));
                     modelInfo.setMd5(r.get("md5"));
                     modelInfo.setTechnicalContact(r.get("technicalcontact"));
+                    modelInfo.setTag(r.get("tag"));
                     modelInfo.setIdgeoiv(r.get("idgeoiv"));
                     return modelInfo;
                 })
                 .collect(Collectors.toList());
-
-        
+      
         return resultList;
     }
  

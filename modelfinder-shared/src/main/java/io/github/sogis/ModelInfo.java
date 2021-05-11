@@ -10,6 +10,8 @@ public final class ModelInfo {
     private String displayName;
     
     private String name;
+    
+    private String shortDescription;
 
     private String version;
     
@@ -26,6 +28,8 @@ public final class ModelInfo {
     private String furtherInformation;
     
     private String md5;
+    
+    private String tag;
     
     private String idgeoiv;
 
@@ -47,6 +51,16 @@ public final class ModelInfo {
     @JsOverlay
     public void setName(String name) {
         this.name = name;
+    }
+
+    @JsOverlay
+    public String getShortDescription() {
+        return shortDescription;
+    }
+
+    @JsOverlay
+    public void setShortDescription(String shortDescription) {
+        this.shortDescription = shortDescription;
     }
 
     @JsOverlay
@@ -127,6 +141,16 @@ public final class ModelInfo {
     @JsOverlay
     public void setMd5(String md5) {
         this.md5 = md5;
+    }
+
+    @JsOverlay
+    public String getTag() {
+        return tag;
+    }
+
+    @JsOverlay
+    public void setTag(String tag) {
+        this.tag = tag;
     }
 
     @JsOverlay
