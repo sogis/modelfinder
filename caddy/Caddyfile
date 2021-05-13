@@ -1,0 +1,11 @@
+:80 {
+    tls stefan.ziegler.de@gmail.com
+
+    proxy / modelfinder:8080 {
+        transparent
+        websocket
+    }
+
+    log stdout
+    errors stdout
+}
