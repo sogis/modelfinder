@@ -112,6 +112,7 @@ public class LuceneSearcher {
             // eine vollständige URL.
             ModelLister modelLister=new ModelLister();
             modelLister.setIgnoreDuplicates(true);
+            
             RepositoryVisitor visitor=new RepositoryVisitor(repoAccess, modelLister);
             visitor.setRepositories(repositories.toArray(new String[repositories.size()]));
             visitor.visitRepositories();
@@ -119,8 +120,6 @@ public class LuceneSearcher {
             List<ModelMetadata> mergedModelMetadatav = modelLister.getResult2();
             log.debug("mergedModelMetadatav: ", mergedModelMetadatav.size());
             
-            //only latest versions
-            //mergedModelMetadatav=RepositoryAccess.getLatestVersions2(mergedModelMetadatav);
             List<ModelMetadata> latestMergedModelMetadatav = RepositoryAccess.getLatestVersions2(mergedModelMetadatav);
             log.debug("latestMergedModelMetadatav: ", latestMergedModelMetadatav.size());
             
@@ -150,6 +149,7 @@ public class LuceneSearcher {
     }
 
     private void addDocument(ModelMetadata modelMetadata, boolean isPrecursorVersion) throws IOException, Ili2cException {
+        log.debug(modelMetadata.getFile());
         Document document = new Document();
 //        if (isPrecursorVersion) {
 //            document.add(new StoredField("dispname", modelMetadata.getName() + " (" + modelMetadata.getVersion() + ") precursor version"));
@@ -157,7 +157,8 @@ public class LuceneSearcher {
 //            document.add(new StoredField("dispname", modelMetadata.getName() + " (" + modelMetadata.getVersion() + ")"));
 //        }
         
-        document.add(new StoredField("dispname", modelMetadata.getName()));
+//        document.add(new StoredField("dispname", modelMetadata.getName()));
+        document.add(new StoredField("dispname", modelMetadata.getName() + " (" + modelMetadata.getVersion() + ")"));
         document.add(new TextField("name", modelMetadata.getName(), Store.YES));
         if (modelMetadata.getShortDescription() != null) {
             document.add(new TextField("shortdescription", modelMetadata.getShortDescription(), Store.YES));
@@ -179,7 +180,7 @@ public class LuceneSearcher {
         if (modelMetadata.getFurtherInformation() != null) {
             document.add(new TextField("furtherinformation", modelMetadata.getFurtherInformation(), Store.YES));
         }
-        if (modelMetadata.getFurtherInformation() != null) {
+        if (modelMetadata.getMd5() != null) {
             document.add(new TextField("md5", modelMetadata.getMd5(), Store.YES));
         }
         

@@ -43,7 +43,8 @@ app:
     myVar: ${VAR:defaultValue}
     index-directory: ${indexDirectory:/tmp/}
     repositories:
-      - http://models.geo.admin.ch
+      - http://models.interlis.ch
+      #- http://models.geo.admin.ch
       #- https://geo.so.ch/models
       #- http://models.geo.gl.ch
     default-repositories:
