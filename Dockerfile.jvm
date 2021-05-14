@@ -1,6 +1,6 @@
 FROM adoptopenjdk:11.0.9_11-jdk-hotspot
 RUN jlink --compress=2 --no-header-files --no-man-pages \
-      --add-modules java.base,java.logging,java.xml,jdk.unsupported,java.sql,java.naming,java.desktop,java.management,java.security.jgss,java.instrument \
+      --add-modules java.base,java.logging,java.xml,jdk.unsupported,java.sql,java.naming,java.desktop,java.management,java.security.jgss,java.instrument,jdk.crypto.ec \
       --output /usr/lib/jvm/spring-boot-runtime
 
 FROM debian:buster-slim as builder

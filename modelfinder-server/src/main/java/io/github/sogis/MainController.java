@@ -66,6 +66,7 @@ public class MainController {
                     ModelInfo modelInfo = new ModelInfo();
                     modelInfo.setDisplayName(r.get("dispname"));
                     modelInfo.setName(r.get("name"));
+                    modelInfo.setTitle(r.get("title"));
                     modelInfo.setVersion(r.get("version"));
                     modelInfo.setFile(r.get("file"));
                     modelInfo.setIssuer(r.get("issuer"));

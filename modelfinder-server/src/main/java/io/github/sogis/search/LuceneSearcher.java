@@ -168,6 +168,9 @@ public class LuceneSearcher {
         if (modelMetadata.getFile().contains("replaced") || modelMetadata.getFile().contains("obsolete")) {
             document.add(new DoubleDocValuesField("boost", 0.5));
         }
+        if(modelMetadata.getTitle() != null) {
+            document.add(new TextField("title", modelMetadata.getTitle(), Store.YES));
+        }
         if (modelMetadata.getIssuer() != null) {
             document.add(new TextField("issuer", modelMetadata.getIssuer(), Store.YES));
         }
@@ -254,6 +257,7 @@ public class LuceneSearcher {
                 luceneQueryString += "(name:*" + token + "*^10 OR "
                         //+ "version:*" + token + "* OR "
                         + "file:*" + token + "* OR "
+                        + "title:*" + token + "* OR "
                         + "issuer:*" + token + "* OR "
                         + "technicalcontact:*" + token + "* OR "
                         + "furtherinformation:*" + token + "* OR "

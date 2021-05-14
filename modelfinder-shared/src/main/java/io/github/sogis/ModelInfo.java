@@ -11,6 +11,8 @@ public final class ModelInfo {
     
     private String name;
     
+    private String title;
+    
     private String shortDescription;
 
     private String version;
@@ -51,6 +53,16 @@ public final class ModelInfo {
     @JsOverlay
     public void setName(String name) {
         this.name = name;
+    }
+
+    @JsOverlay
+    public String getTitle() {
+        return title;
+    }
+
+    @JsOverlay
+    public void setTitle(String title) {
+        this.title = title;
     }
 
     @JsOverlay

@@ -132,6 +132,11 @@ public class App implements EntryPoint {
                 resultContent.appendChild(h(4, "Version").element());
                 resultContent.appendChild(p().textContent(result.getVersion()).element());
 
+                if (result.getTitle() != null) {
+                    resultContent.appendChild(h(4, "Title").element());
+                    resultContent.appendChild(p().textContent(result.getTitle()).element());
+                }
+                                
                 resultContent.appendChild(h(4, "File").element());
                 resultContent.appendChild(p().add(
                         a().css("result")
