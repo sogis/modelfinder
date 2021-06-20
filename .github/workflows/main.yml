@@ -9,6 +9,7 @@ jobs:
       DOCKER_REPO: modelfinder
       DOCKER_PASSWORD: ${{secrets.DOCKER_PASSWORD}}
       DOCKER_USERNAME: ${{secrets.DOCKER_USERNAME}} 
+      AWS_REGION: eu-west-1
       BUILD_NUMBER: ${{ github.run_number }}
     runs-on: ubuntu-latest
     steps:
