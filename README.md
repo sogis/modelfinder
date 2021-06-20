@@ -1,3 +1,5 @@
+![Build Status](https://github.com/edigonzales/modelfinder/actions/workflows/main.yml/badge.svg)
+
 # modelfinder
 
 ## Health checks
