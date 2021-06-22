@@ -82,6 +82,11 @@ public class MainController {
       
         return resultList;
     }
+    
+    @GetMapping("/reindex")
+    public void reindex() {
+        this.rebuildIndex();
+    } 
  
     @Scheduled(cron="* 4 * * * *")
     private void rebuildIndex() {
