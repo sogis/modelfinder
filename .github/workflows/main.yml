@@ -1,9 +1,9 @@
-name: modelfinder
+name: CI/CD
 
 on: [push]
 
 jobs:
-  build:
+  build-test-publish:
     env:
       DOCKER_ACCOUNT: sogis
       DOCKER_REPO: modelfinder
