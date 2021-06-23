@@ -9,7 +9,7 @@ jobs:
       DOCKER_REPO: modelfinder
       DOCKER_PASSWORD: ${{secrets.DOCKER_PASSWORD}}
       DOCKER_USERNAME: ${{secrets.DOCKER_USERNAME}} 
-      AWS_REGION: eu-west-1
+      DIGITALOCEAN_TOKEN: ${{secrets.DIGITALOCEAN_TOKEN}}
       BUILD_NUMBER: ${{ github.run_number }}
     runs-on: ubuntu-latest
     steps:
@@ -38,20 +38,7 @@ jobs:
           docker images
           docker push $DOCKER_ACCOUNT/$DOCKER_REPO:latest
         if: ${{ github.ref == 'refs/heads/main' }}  
-      - name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@v1
-        with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: ${{ env.AWS_REGION }}
-      - name: Login to Amazon ECR
-        id: login-ecr
-        uses: aws-actions/amazon-ecr-login@v1
-      - name: Push Docker Image to Amazon ECR
-        env:
-          ECR_REGISTRY: 465066823493.dkr.ecr.eu-west-1.amazonaws.com
-          ECR_REPOSITORY: modelfinder
+      - name: Deploy to Digital Ocean App Platform
         run: |
-          docker image tag $DOCKER_ACCOUNT/$DOCKER_REPO:latest $ECR_REGISTRY/$ECR_REPOSITORY:latest
-          docker push $ECR_REGISTRY/$ECR_REPOSITORY:latest
-        if: ${{ github.ref == 'refs/heads/main' }}  
+          curl -X POST -H "Content-Type: application/json" -H "Authorization: Bearer $DIGITALOCEAN_TOKEN" "https://api.digitalocean.com/v2/apps/a07f64e0-a50e-4466-a34b-63c6dc952d93/deployments"
+        if: ${{ github.ref == 'refs/heads/main' }} 
