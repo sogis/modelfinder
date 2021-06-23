@@ -12,6 +12,7 @@ Nach dem Hochfahren wird der Suchindex erstellt. Während des Erstellens ist die
 - wie
 - wann (update)
 - ...
+- ...
 
 ## Develop
 First terminal:
