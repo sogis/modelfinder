@@ -39,3 +39,4 @@ mvn gwt:codeserver -pl *-client -am -nsu
 - Maven build noch ins Image verlagern. Ist so ein wenig verfrickelt.
 - Tests
   * disable commandlinerunner in tests?
+- ...
