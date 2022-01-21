@@ -88,7 +88,7 @@ public class MainController {
         this.rebuildIndex();
     } 
  
-    @Scheduled(cron="* 4 * * * *")
+    @Scheduled(cron="0 */2 * * *")
     private void rebuildIndex() {
         try {
             searcher.createIndex();
