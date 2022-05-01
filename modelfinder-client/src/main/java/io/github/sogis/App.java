@@ -27,6 +27,7 @@ import elemental2.core.Global;
 import elemental2.dom.DomGlobal;
 import elemental2.dom.HTMLElement;
 import elemental2.dom.Headers;
+import elemental2.dom.Location;
 import elemental2.dom.RequestInit;
 
 public class App implements EntryPoint {
@@ -46,7 +47,17 @@ public class App implements EntryPoint {
         Theme theme = new Theme(ColorScheme.RED);
         theme.apply();
 	    
-	    HTMLElement container = div().id("container").element();
+	    HTMLElement container = div().id("container").element();        
+        body().add(container);        
+
+        Location location = DomGlobal.window.location;
+        if (location.pathname.length() > 1) {
+            location.pathname += "/"; 
+        }
+        HTMLElement logoDiv = div().css("logo")
+                .add(div()
+                        .add(img().attr("src", location.protocol + "//" + location.host + location.pathname + "Logo.png").attr("alt", "Logo Kanton")).element()).element();
+        container.appendChild(logoDiv);
 
 	    HTMLElement topLevelContent = div().id("top-level-content").element();
 	    container.appendChild(topLevelContent);
@@ -184,9 +195,5 @@ public class App implements EntryPoint {
                 resultContainer.appendChild(resultContent);                
             }
         });
-
-	    
-	    
-	    body().add(container);        
 	}
 }

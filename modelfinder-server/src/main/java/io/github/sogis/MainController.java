@@ -83,6 +83,7 @@ public class MainController {
         return resultList;
     }
     
+    // TODO: remove
     @GetMapping("/reindex")
     public void reindex() {
         this.rebuildIndex();
