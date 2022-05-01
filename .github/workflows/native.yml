@@ -44,20 +44,20 @@ jobs:
           ./mvnw -e -B -q -Penv-prod,native clean package
           ls -la modelfinder-server/target
 
-      # - name: Create Docker Image
-      #   run: |
-      #     echo "$DOCKER_PASSWORD" | docker login --username "$DOCKER_USERNAME" --password-stdin
-      #     docker pull $DOCKER_ACCOUNT/$DOCKER_REPO:latest
-      #     docker build -t $DOCKER_ACCOUNT/$DOCKER_REPO:latest -f sodata-server/src/main/docker/Dockerfile.native .
-      #     docker tag $DOCKER_ACCOUNT/$DOCKER_REPO:latest $DOCKER_ACCOUNT/$DOCKER_REPO:0.0.$BUILD_NUMBER
+      - name: Create Docker Image
+        run: |
+          echo "$DOCKER_PASSWORD" | docker login --username "$DOCKER_USERNAME" --password-stdin
+          docker pull $DOCKER_ACCOUNT/$DOCKER_REPO:latest
+          docker build -t $DOCKER_ACCOUNT/$DOCKER_REPO:latest -f sodata-server/src/main/docker/Dockerfile.native .
+          docker tag $DOCKER_ACCOUNT/$DOCKER_REPO:latest $DOCKER_ACCOUNT/$DOCKER_REPO:0.0.$BUILD_NUMBER
 
-      # - name: Push Docker Images
-      #   if: ${{ github.ref == 'refs/heads/master' }}
-      #   run: |
-      #     echo "$DOCKER_PASSWORD" | docker login --username "$DOCKER_USERNAME" --password-stdin
-      #     docker images
-      #     docker push $DOCKER_ACCOUNT/$DOCKER_REPO:latest
-      #     docker push $DOCKER_ACCOUNT/$DOCKER_REPO:0.0.$BUILD_NUMBER
+      - name: Push Docker Images
+        if: ${{ github.ref == 'refs/heads/master' }}
+        run: |
+          echo "$DOCKER_PASSWORD" | docker login --username "$DOCKER_USERNAME" --password-stdin
+          docker images
+          docker push $DOCKER_ACCOUNT/$DOCKER_REPO:latest
+          docker push $DOCKER_ACCOUNT/$DOCKER_REPO:0.0.$BUILD_NUMBER
 
       # - name: Deploy to Digital Ocean App Platform
       #   if: ${{ github.ref == 'refs/heads/master' }}
