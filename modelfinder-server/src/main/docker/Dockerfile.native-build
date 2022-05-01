@@ -24,3 +24,4 @@ COPY --from=1 --chown=1001:root /home/app/io.github.sogis.application /work/appl
 EXPOSE 8080
 USER 1001
 CMD ["./application"]
+
