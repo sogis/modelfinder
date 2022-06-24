@@ -93,8 +93,8 @@ public class MainController {
                 .collect(Collectors.groupingBy(ModelInfo::getRepositoryDomain, Collectors.collectingAndThen(
                         Collectors.toList(),
                         models -> models.stream()
-                            .sorted(Comparator.comparing(ModelInfo::getName, (s1, s2) -> {
-                                return s1.toLowerCase().compareTo(s2.toLowerCase());
+                            .sorted(Comparator.comparing(ModelInfo::getName, (m1, m2) -> {
+                                return m1.toLowerCase().compareTo(m2.toLowerCase());
                             }))
                             .collect(Collectors.toList())
                         )));
