@@ -6,7 +6,7 @@ import jsinterop.annotations.JsPackage;
 import jsinterop.annotations.JsProperty;
 
 @JsType(isNative=true, namespace=JsPackage.GLOBAL, name="Object")
-public final class ModelInfo {
+public final class ModelInfo {    
     private String displayName;
     
     private String name;
@@ -20,7 +20,9 @@ public final class ModelInfo {
     private String file;
     
     private String repository;
-    
+
+    private String repositoryDomain;
+
     private String issuer;
     
     private String precursorVersion;
@@ -103,6 +105,14 @@ public final class ModelInfo {
     @JsOverlay
     public void setRepository(String repository) {
         this.repository = repository;
+    }
+
+    public String getRepositoryDomain() {
+        return repositoryDomain;
+    }
+
+    public void setRepositoryDomain(String repositoryDomain) {
+        this.repositoryDomain = repositoryDomain;
     }
 
     @JsOverlay

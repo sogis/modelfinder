@@ -1,6 +1,8 @@
 package io.github.sogis;
 
 import java.io.IOException;
+import java.util.Comparator;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -35,9 +37,12 @@ public class MainController {
     @Value("${lucene.query.default.records:20}")
     private Integer QUERY_DEFAULT_RECORDS;
 
-    @Value("${lucene.query.max.records:50}")
+    @Value("${lucene.query.max.records:5000}")
     private Integer QUERY_MAX_RECORDS;   
-    
+
+    @Value("${lucene.query.max.records:5000}")
+    private Integer QUERY_MAX_ALL_RECORDS;   
+
     @GetMapping("/settings")
     public ResponseEntity<?> getSettings() {
         return ResponseEntity.ok().body(settings);
@@ -47,23 +52,30 @@ public class MainController {
     public ResponseEntity<String> ping()  {
         return new ResponseEntity<String>("modelfinder", HttpStatus.OK);
     }
+        
+    // TODO:
+    // Eventuell gesamte Liste speichern / cachen:
+    // - Beim Aufstarten 
+    // - Beim Indexieren
+    // Cache durch Webserver? Wie lange?
     
     @GetMapping("/search")
-    public List<ModelInfo> searchModel(@RequestParam(value="query", required=false) String queryString) {
+    public Map<String, List<ModelInfo>> searchModel(@RequestParam(value="query", required=false) String queryString) {
         Result results = null;
                 
         try {
-            results = searcher.searchIndex(queryString, QUERY_DEFAULT_RECORDS, false);
+            results = searcher.searchIndex(queryString, QUERY_MAX_RECORDS, QUERY_MAX_ALL_RECORDS, false);
             log.info("Search for '" + queryString +"' found " + results.getAvailable() + " and retrieved " + results.getRetrieved() + " records");            
         } catch (LuceneSearcherException | InvalidLuceneQueryException e) {
             throw new IllegalStateException(e);
         }
 
-        List<Map<String, String>> records = results.getRecords();
-        
-        List<ModelInfo> resultList = records.stream()
+        List<Map<String, String>> records = results.getRecords();        
+        Map<String, List<ModelInfo>> resultMap = records.stream()
                 .map(r -> {                    
                     ModelInfo modelInfo = new ModelInfo();
+                    modelInfo.setRepository(r.get("repository"));
+                    modelInfo.setRepositoryDomain(r.get("repository").replaceAll("http(s)?://|www\\.|/.*", ""));
                     modelInfo.setDisplayName(r.get("dispname"));
                     modelInfo.setName(r.get("name"));
                     modelInfo.setTitle(r.get("title"));
@@ -78,9 +90,21 @@ public class MainController {
                     modelInfo.setIdgeoiv(r.get("idgeoiv"));
                     return modelInfo;
                 })
-                .collect(Collectors.toList());
-      
-        return resultList;
+                .collect(Collectors.groupingBy(ModelInfo::getRepositoryDomain, Collectors.collectingAndThen(
+                        Collectors.toList(),
+                        models -> models.stream()
+                            .sorted(Comparator.comparing(ModelInfo::getName, (s1, s2) -> {
+                                return s1.toLowerCase().compareTo(s2.toLowerCase());
+                            }))
+                            .collect(Collectors.toList())
+                        )));
+
+        Map<String, List<ModelInfo>> sortedResultMap = resultMap.entrySet().stream()
+            .sorted(Map.Entry.<String, List<ModelInfo>>comparingByKey())
+            .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue, (e1, e2) -> e2,
+                    LinkedHashMap::new)); 
+
+        return sortedResultMap;
     }
     
     // TODO: remove

@@ -2,6 +2,11 @@ package io.github.sogis.search;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.net.URL;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -33,8 +38,10 @@ import org.apache.lucene.queryparser.classic.ParseException;
 import org.apache.lucene.queryparser.classic.QueryParser;
 import org.apache.lucene.search.DoubleValuesSource;
 import org.apache.lucene.search.IndexSearcher;
+import org.apache.lucene.search.MatchAllDocsQuery;
 import org.apache.lucene.search.Query;
 import org.apache.lucene.search.ScoreDoc;
+import org.apache.lucene.search.Sort;
 import org.apache.lucene.search.TopDocs;
 import org.apache.lucene.search.TotalHitCountCollector;
 import org.apache.lucene.store.Directory;
@@ -79,6 +86,7 @@ public class LuceneSearcher {
     
     private IliManager manager;
 
+    // PostConstruct: Anwendung ist noch nicht fertig gestartet / ready -> Abklären wegen liveness und readyness probes.
     // PostConstruct wird vor dem CommandLineRunner ausgeführt. Die Variablen müssen für das Erstellen
     // des Index instanziert werden.
     @PostConstruct
@@ -91,8 +99,6 @@ public class LuceneSearcher {
       this.analyzer = new StandardAnalyzer();   
     }
     
-    // PostConstruct: Anwendung ist noch nicht fertig gestartet / ready -> Abklären wegen liveness und readyness probes.
-    //@PostConstruct
     public void createIndex() throws IOException {
         log.info("Building index ...");
         IndexWriterConfig indexWriterConfig = new IndexWriterConfig(analyzer);
@@ -118,14 +124,14 @@ public class LuceneSearcher {
             visitor.visitRepositories();
             
             List<ModelMetadata> mergedModelMetadatav = modelLister.getResult2();
-            log.debug("mergedModelMetadatav: ", mergedModelMetadatav.size());
-            
+            log.debug("mergedModelMetadatav: {}", mergedModelMetadatav.size());
+                      
             List<ModelMetadata> latestMergedModelMetadatav = RepositoryAccess.getLatestVersions2(mergedModelMetadatav);
-            log.debug("latestMergedModelMetadatav: ", latestMergedModelMetadatav.size());
+            log.debug("latestMergedModelMetadatav: {}", latestMergedModelMetadatav.size());
             
             List<ModelMetadata> precursorModelMetadata = new ArrayList<ModelMetadata>(mergedModelMetadatav);
             precursorModelMetadata.removeAll(latestMergedModelMetadatav);
-            log.debug("precursorModelMetadata", precursorModelMetadata.size());
+            log.debug("precursorModelMetadata: {}", precursorModelMetadata.size());
 
             for (ModelMetadata modelMetadata : latestMergedModelMetadatav) {
                 addDocument(modelMetadata, false);
@@ -149,7 +155,6 @@ public class LuceneSearcher {
     }
 
     private void addDocument(ModelMetadata modelMetadata, boolean isPrecursorVersion) throws IOException, Ili2cException {
-        log.debug(modelMetadata.getFile());
         Document document = new Document();
 //        if (isPrecursorVersion) {
 //            document.add(new StoredField("dispname", modelMetadata.getName() + " (" + modelMetadata.getVersion() + ") precursor version"));
@@ -158,6 +163,19 @@ public class LuceneSearcher {
 //        }
         
 //        document.add(new StoredField("dispname", modelMetadata.getName()));
+
+        try {
+            // Es gibt ILI-Dateien mit Leerschlag.
+            // Man kann jedoch nicht URLEncoder verwenden, weil dann der
+            // gesamte String encoded wird.
+            URI uri = new URI(modelMetadata.getFile().replace(" ", "%20"));
+            String host = uri.getHost();
+            String scheme = uri.getScheme();
+            document.add(new TextField("repository", scheme+"://"+host, Store.YES));
+        } catch (URISyntaxException e) {
+            e.printStackTrace();
+        }
+
         document.add(new StoredField("dispname", modelMetadata.getName() + " (" + modelMetadata.getVersion() + ")"));
         document.add(new TextField("name", modelMetadata.getName(), Store.YES));
         if (modelMetadata.getShortDescription() != null) {
@@ -231,7 +249,7 @@ public class LuceneSearcher {
      * @throws LuceneSearcherException 
      * @throws InvalidLuceneQueryException 
      */
-    public Result searchIndex(String queryString, int numRecords, boolean showAvailable)
+    public Result searchIndex(String queryString, int numRecords, int maxAllRecords, boolean showAvailable)
             throws LuceneSearcherException, InvalidLuceneQueryException {
         IndexReader reader = null;
         IndexSearcher indexSearcher = null;
@@ -241,44 +259,58 @@ public class LuceneSearcher {
         try {            
             reader = DirectoryReader.open(this.fsIndex);
             indexSearcher = new IndexSearcher(reader);
-            queryParser = new QueryParser("name", analyzer); // 'name' is default field if we don't prefix search string
-            queryParser.setAllowLeadingWildcard(true);
             
-            String luceneQueryString = "";
-            String[] splitedQuery = queryString.split("\\s+");
-            for (int i=0; i<splitedQuery.length; i++) {
-                String token = splitedQuery[i];
-                log.debug("token: " + token);
+            if (queryString == null || queryString.trim().length() == 0) {
+                query = new MatchAllDocsQuery();
+            } else {
+                queryParser = new QueryParser("name", analyzer); // 'name' is default field if we don't prefix search string
+                queryParser.setAllowLeadingWildcard(true);
                 
-                // TODO: tag und shortdescription auswerten.
-                
-                // Das Feld, welches bestimmend sein soll (also in der Suche zuoberst gelistet), bekommt
-                // einen sehr hohen Boost.
-                luceneQueryString += "(name:*" + token + "*^10 OR "
-                        //+ "version:*" + token + "* OR "
-                        + "file:*" + token + "* OR "
-                        + "title:*" + token + "* OR "
-                        + "issuer:*" + token + "* OR "
-                        + "technicalcontact:*" + token + "* OR "
-                        + "furtherinformation:*" + token + "* OR "
-                        //+ "md5:" + token + "* OR "
-                        + "idgeoiv:" + token + "*^20 "
-                                + ")";
-                if (i<splitedQuery.length-1) {
-                    luceneQueryString += " AND ";
+                String luceneQueryString = "";
+                String[] splitedQuery = queryString.split("\\s+");
+                for (int i=0; i<splitedQuery.length; i++) {
+                    String token = splitedQuery[i];
+                    log.debug("token: " + token);
+                    
+                    // TODO: tag und shortdescription auswerten.
+                    
+                    // Das Feld, welches bestimmend sein soll (also in der Suche zuoberst gelistet), bekommt
+                    // einen sehr hohen Boost.
+                    luceneQueryString += "(name:*" + token + "*^10 OR "
+                            //+ "version:*" + token + "* OR "
+                            + "file:*" + token + "* OR "
+                            + "title:*" + token + "* OR "
+                            + "issuer:*" + token + "* OR "
+                            + "technicalcontact:*" + token + "* OR "
+                            + "furtherinformation:*" + token + "* OR "
+                            //+ "md5:" + token + "* OR "
+                            + "idgeoiv:" + token + "*^20 "
+                                    + ")";
+                    if (i<splitedQuery.length-1) {
+                        luceneQueryString += " AND ";
+                    }
                 }
+                            
+                Query tmpQuery = queryParser.parse(luceneQueryString);
+                query = FunctionScoreQuery.boostByValue(tmpQuery, DoubleValuesSource.fromDoubleField("boost"));
+                
+                log.info("'" + luceneQueryString + "' ==> '" + query.toString() + "'");
             }
-                        
-            Query tmpQuery = queryParser.parse(luceneQueryString);
-            query = FunctionScoreQuery.boostByValue(tmpQuery, DoubleValuesSource.fromDoubleField("boost"));
-            
-            log.info("'" + luceneQueryString + "' ==> '" + query.toString() + "'");
             
             if (showAvailable) {
                 collector = new TotalHitCountCollector();
                 indexSearcher.search(query, collector);
             }
-            documents = indexSearcher.search(query, numRecords);
+            
+            // Sorting: https://stackoverflow.com/questions/21965778/sorting-search-result-in-lucene-based-on-a-numeric-field
+            // Scheint noch bisse mühsam zu sein.
+            // Eventuell muss man es eh ausserhalb machen, wenn wir noch gruppieren etc.
+            if (queryString == null || queryString.trim().length() == 0) {
+                documents = indexSearcher.search(query, maxAllRecords);
+            } else {
+                documents = indexSearcher.search(query, numRecords);
+            }
+            
             log.debug("documents.totalHits.value: ", documents.totalHits.value);
             List<Map<String, String>> mapList = new LinkedList<Map<String, String>>();
             for (ScoreDoc scoreDoc : documents.scoreDocs) {
