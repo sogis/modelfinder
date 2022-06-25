@@ -107,10 +107,12 @@ public final class ModelInfo {
         this.repository = repository;
     }
 
+    @JsOverlay
     public String getRepositoryDomain() {
         return repositoryDomain;
     }
 
+    @JsOverlay
     public void setRepositoryDomain(String repositoryDomain) {
         this.repositoryDomain = repositoryDomain;
     }
