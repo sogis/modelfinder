@@ -8,8 +8,6 @@
   <set-property name="locale" value="de_CH" />
     
   <inherits name="org.dominokit.domino.ui.DominoUI" />
-  <inherits name="ol.GwtOL" />
-  <inherits name="proj4.GwtProj4" />
 
   <source path="" />
 

@@ -19,8 +19,9 @@ import org.dominokit.domino.ui.icons.Icons;
 import org.dominokit.domino.ui.style.Color;
 import org.dominokit.domino.ui.style.ColorScheme;
 import org.dominokit.domino.ui.themes.Theme;
+import org.dominokit.domino.ui.utils.TextNode;
 import org.dominokit.domino.ui.utils.HasSelectionHandler.SelectionHandler;
-import org.dominokit.domino.ui.forms.SuggestBox.DropDownPositionDown;
+import org.dominokit.domino.ui.forms.AbstractSuggestBox.DropDownPositionDown;
 import org.dominokit.domino.ui.forms.TextBox;
 
 import com.google.gwt.core.client.EntryPoint;
@@ -28,11 +29,13 @@ import com.google.gwt.i18n.client.NumberFormat;
 
 import elemental2.core.Global;
 import elemental2.core.JsArray;
-import elemental2.core.JsMap;
+import elemental2.dom.Document;
 import elemental2.dom.DomGlobal;
 import elemental2.dom.Event;
 import elemental2.dom.EventListener;
+import elemental2.dom.HTMLDocument;
 import elemental2.dom.HTMLElement;
+import elemental2.dom.HTMLParagraphElement;
 import elemental2.dom.Headers;
 import elemental2.dom.Location;
 import elemental2.dom.RequestInit;
@@ -90,8 +93,9 @@ public class App implements EntryPoint {
             @Override
             public void handleEvent(Event evt) {
                 textBox.clear();
-                console.log(evt.timeStamp);
-                //listStore.setData(datasets);
+                while(resultContent.firstChild != null) {
+                    resultContent.removeChild(resultContent.firstChild);
+                }
             }
         });
         textBox.addRightAddOn(resetIcon);
@@ -99,6 +103,8 @@ public class App implements EntryPoint {
         
         resultContent = div().id("result-content").element(); 
         container.appendChild(resultContent);
+        
+        HTMLDocument document = DomGlobal.document;
         
         textBox.addEventListener("keyup", event -> {
             if (textBox.getValue().trim().length() == 0) {
@@ -115,12 +121,30 @@ public class App implements EntryPoint {
                 JsPropertyMap<?> parsed = Js.cast(Global.JSON.parse(json));
                 DomGlobal.console.info(parsed);
                 
+                while(resultContent.firstChild != null) {
+                    resultContent.removeChild(resultContent.firstChild);
+                }
+                
                 parsed.forEach(new JsForEachCallbackFn() {
-
                     @Override
                     public void onKey(String key) {
-                        Object value = parsed.get(key);
-                        console.log("key: " + key);
+                        JsArray modelInfoArray = (JsArray) parsed.get(key);
+                                                
+                        HTMLElement details = (HTMLElement) document.createElement("details");
+                        details.className = "repo-details";
+                        
+                        HTMLElement summary = (HTMLElement) document.createElement("summary");
+                        summary.className = "repo-summary";
+                        summary.appendChild(span().add(key + " (" + modelInfoArray.length + ")").element());
+
+                        HTMLParagraphElement paragraph = p().add(TextNode.of("fubar")).element();
+                        
+                        details.append(summary, paragraph);
+                        resultContent.appendChild(details);
+                        
+                        
+                        
+                        
 //                        console.log("value: " + value);
 //                        if (value instanceof String) {
 //                            console.log("key: " + key);
@@ -128,7 +152,6 @@ public class App implements EntryPoint {
 //
 //                        }
                     }
-                    
                 });
                 
                 

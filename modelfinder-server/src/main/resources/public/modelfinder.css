@@ -3,6 +3,7 @@ body {
   padding: 0px;
   background: #FFFFFF; 
   color: #333333;
+  font-size: 16px;
 }
 
 body, div {
@@ -32,8 +33,17 @@ body, div {
 }
 
 #result-content {
-    background-color: wheat;
-    height: 400px;
+    /*background-color: wheat;*/
+    /*height: 600px;*/
+}
+
+.repo-details {
+    padding: 15px 0px;
+    border-bottom: 1px solid #eee;
+}
+
+.repo-summary {
+	display: list-item;
 }
 
 .field-group input, .field-group textarea {
