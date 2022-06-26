@@ -145,6 +145,8 @@ public class App implements EntryPoint {
                 JsPropertyMap<?> parsed = Js.cast(Global.JSON.parse(json));
                 DomGlobal.console.info(parsed);
                 
+                // TODO: remember which repo was opened?
+                
                 while(resultContent.firstChild != null) {
                     resultContent.removeChild(resultContent.firstChild);
                 }
