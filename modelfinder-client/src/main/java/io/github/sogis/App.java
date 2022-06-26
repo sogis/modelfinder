@@ -94,7 +94,7 @@ public class App implements EntryPoint {
         topLevelContent.appendChild(div().id("filterbox-div").add(textBox).element());
         
         // Switch button for toggling results.
-        SwitchButton switchButton = SwitchButton.create("Expand repositories", "off", "on")
+        SwitchButton switchButton = SwitchButton.create("Expand results", "off", "on")
             .addChangeHandler(
                     value -> {
                         // TODO
