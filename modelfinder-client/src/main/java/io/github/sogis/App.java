@@ -11,17 +11,13 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
 
-import org.dominokit.domino.ui.dropdown.DropDownMenu;
-import org.dominokit.domino.ui.forms.SuggestBox;
-import org.dominokit.domino.ui.forms.SuggestBoxStore;
-import org.dominokit.domino.ui.forms.SuggestItem;
+import org.dominokit.domino.ui.forms.SwitchButton;
 import org.dominokit.domino.ui.icons.Icons;
+import org.dominokit.domino.ui.notifications.Notification;
 import org.dominokit.domino.ui.style.Color;
 import org.dominokit.domino.ui.style.ColorScheme;
 import org.dominokit.domino.ui.themes.Theme;
 import org.dominokit.domino.ui.utils.TextNode;
-import org.dominokit.domino.ui.utils.HasSelectionHandler.SelectionHandler;
-import org.dominokit.domino.ui.forms.AbstractSuggestBox.DropDownPositionDown;
 import org.dominokit.domino.ui.forms.TextBox;
 
 import com.google.gwt.core.client.EntryPoint;
@@ -29,6 +25,8 @@ import com.google.gwt.i18n.client.NumberFormat;
 
 import elemental2.core.Global;
 import elemental2.core.JsArray;
+import elemental2.core.JsMap;
+import elemental2.core.JsMap.ForEachCallbackFn;
 import elemental2.dom.Document;
 import elemental2.dom.DomGlobal;
 import elemental2.dom.Event;
@@ -36,9 +34,7 @@ import elemental2.dom.EventListener;
 import elemental2.dom.HTMLDocument;
 import elemental2.dom.HTMLElement;
 import elemental2.dom.HTMLParagraphElement;
-import elemental2.dom.Headers;
 import elemental2.dom.Location;
-import elemental2.dom.RequestInit;
 import jsinterop.base.Js;
 import jsinterop.base.JsForEachCallbackFn;
 import jsinterop.base.JsPropertyMap;
@@ -63,9 +59,11 @@ public class App implements EntryPoint {
         Theme theme = new Theme(ColorScheme.RED);
         theme.apply();
 	    
+        // Main container element.
 	    HTMLElement container = div().id("container").element();        
         body().add(container);        
 
+        // Get pathname to handle url correctly for resources (e.g. logos and server requests)
         Location location = DomGlobal.window.location;
         pathname = location.pathname;
 
@@ -73,15 +71,17 @@ public class App implements EntryPoint {
             pathname = pathname.replace("index.html", "");
         }
 
+        // Add logo
         HTMLElement logoDiv = div().css("logo")
                 .add(div()
                         .add(img().attr("src", location.protocol + "//" + location.host + location.pathname + "Logo.png").attr("alt", "Logo Kanton")).element()).element();
         container.appendChild(logoDiv);
 
+        // Content element for filter / search element and switch button.
 	    HTMLElement topLevelContent = div().id("top-level-content").element();
 	    container.appendChild(topLevelContent);
 	    
-	    
+	    // Textbox that acts as filter / search element.
         TextBox textBox = TextBox.create().setLabel("Search for INTERLIS models...");
         textBox.addLeftAddOn(Icons.ALL.search());
         textBox.setFocusColor(Color.RED_DARKEN_3);
@@ -89,23 +89,47 @@ public class App implements EntryPoint {
         textBox.getInputElement().setAttribute("spellcheck", "false");
 
         HTMLElement resetIcon = Icons.ALL.close().style().setCursor("pointer").get().element();
+        textBox.addRightAddOn(resetIcon);
+        
+        topLevelContent.appendChild(div().id("filterbox-div").add(textBox).element());
+        
+        // Switch button for toggling results.
+        SwitchButton switchButton = SwitchButton.create("Expand repositories", "off", "on")
+            .addChangeHandler(
+                    value -> {
+                        // TODO
+                        Notification.createInfo("test " + value).show();
+                    })
+            .setOffTitle("OFF")
+            .setOnTitle("ON")
+            .setColor(Color.RED_DARKEN_3);
+        topLevelContent.appendChild(switchButton.element());
+        
+        // Reset search: clear textbox, remove results, uncheck switch button.
         resetIcon.addEventListener("click", new EventListener() {
             @Override
             public void handleEvent(Event evt) {
                 textBox.clear();
+                
                 while(resultContent.firstChild != null) {
                     resultContent.removeChild(resultContent.firstChild);
-                }
+                }           
+                
+                switchButton.uncheck();
             }
         });
-        textBox.addRightAddOn(resetIcon);
-        topLevelContent.appendChild(div().id("filterbox-div").add(textBox).element());
-        
+
+        // Content element for search results.
         resultContent = div().id("result-content").element(); 
         container.appendChild(resultContent);
         
+        // HTML document: used for creating html elements that are not
+        // available in elemento (e.g. summary, details).
         HTMLDocument document = DomGlobal.document;
         
+        // Search models in the lucene index on the server.
+        // See pathname: should handle paths that are set in 
+        // reverse proxies and/or api gateways.
         textBox.addEventListener("keyup", event -> {
             if (textBox.getValue().trim().length() == 0) {
                 //listStore.setData(datasets);
@@ -128,22 +152,46 @@ public class App implements EntryPoint {
                 parsed.forEach(new JsForEachCallbackFn() {
                     @Override
                     public void onKey(String key) {
-                        JsArray modelInfoArray = (JsArray) parsed.get(key);
+                        JsArray<ModelInfo> modelInfoArray = (JsArray) parsed.get(key);
+                        console.log(modelInfoArray);
                                                 
+                        // TODO: respect switch button (auch beim Start)!!
+                        
                         HTMLElement details = (HTMLElement) document.createElement("details");
                         details.className = "repo-details";
                         
                         HTMLElement summary = (HTMLElement) document.createElement("summary");
                         summary.className = "repo-summary";
                         summary.appendChild(span().add(key + " (" + modelInfoArray.length + ")").element());
-
-                        HTMLParagraphElement paragraph = p().add(TextNode.of("fubar")).element();
+                        
+                        HTMLParagraphElement paragraph = p().element(); 
                         
                         details.append(summary, paragraph);
                         resultContent.appendChild(details);
-                        
-                        
-                        
+
+                        for (ModelInfo modelInfo : modelInfoArray.asList()) {                            
+                            HTMLElement modelDetails = (HTMLElement) document.createElement("details");
+                            modelDetails.className = "model-details";
+                            
+                            HTMLElement modelSummary = (HTMLElement) document.createElement("summary");
+                            modelSummary.className = "model-summary";
+                            
+                            HTMLElement launchIcon = Icons.ALL.launch_mdi().style().addCss("model-launch-icon").get().element();
+                            HTMLElement modelLink = a()
+                                    .attr("class", "icon-link")
+                                    .attr("href", modelInfo.getFile())
+                                    .attr("target", "_blank").add(launchIcon).element();
+                                                        
+                            
+                            modelSummary.appendChild(span().add(TextNode.of(modelInfo.getName() + " ")).add(modelLink).element());
+
+
+                            modelDetails.append(modelSummary);
+                            paragraph.append(modelDetails);
+                            
+                        }
+                                                
+
                         
 //                        console.log("value: " + value);
 //                        if (value instanceof String) {
