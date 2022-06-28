@@ -2,7 +2,7 @@ FROM bellsoft/liberica-openjdk-alpine-musl:11.0.14
 
 ENV HOME=/home/modelfinder
 WORKDIR /home/modelfinder
-COPY modelfinder-server/target/modelfinder.jar /home/modelfinder/modelfinder.jar
+COPY modelfinder-server/target/modelfinder.jar modelfinder.jar
 RUN cd /home/modelfinder && \
     chown -R 1001:0 /home/modelfinder && \
     chmod -R g+rw /home/modelfinder && \
