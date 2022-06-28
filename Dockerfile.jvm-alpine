@@ -4,10 +4,10 @@ ARG UID=1001
 RUN adduser modelfinder -g 'modelfinder user' -D --uid $UID
 
 WORKDIR /home/modelfinder
-COPY modelfinder-server/target/modelfinder.jar /home/modelfinder/modelfinder.jar
+COPY modelfinder-server/target/modelfinder.jar modelfinder.jar
 RUN cd /home/modelfinder && \
-    chown -R $UID:0 /home/modelfinder && \
-    chmod -R g+rw /home/modelfinder && \
+    chown -R $UID:0 . && \
+    chmod -R g+rw . && \
     ls -la /home/modelfinder
 
 USER $UID
