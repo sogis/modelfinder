@@ -29,12 +29,17 @@ import elemental2.core.JsMap;
 import elemental2.core.JsMap.ForEachCallbackFn;
 import elemental2.dom.Document;
 import elemental2.dom.DomGlobal;
+import elemental2.dom.Element;
 import elemental2.dom.Event;
 import elemental2.dom.EventListener;
+import elemental2.dom.HTMLCollection;
 import elemental2.dom.HTMLDocument;
 import elemental2.dom.HTMLElement;
 import elemental2.dom.HTMLParagraphElement;
+import elemental2.dom.HTMLTableElement;
+import elemental2.dom.HTMLTableSectionElement;
 import elemental2.dom.Location;
+import elemental2.dom.URLSearchParams;
 import jsinterop.base.Js;
 import jsinterop.base.JsForEachCallbackFn;
 import jsinterop.base.JsPropertyMap;
@@ -49,7 +54,7 @@ public class App implements EntryPoint {
 
     private String pathname;
     private HTMLElement resultContent;
-    
+
 	public void onModuleLoad() {
 	    init();
 	}
@@ -58,13 +63,18 @@ public class App implements EntryPoint {
     public void init() {
         Theme theme = new Theme(ColorScheme.RED);
         theme.apply();
-	    
+	      
         // Main container element.
 	    HTMLElement container = div().id("container").element();        
         body().add(container);        
 
-        // Get pathname to handle url correctly for resources (e.g. logos and server requests)
+        // Get search params to restrict search.
         Location location = DomGlobal.window.location;
+        URLSearchParams searchParams = new URLSearchParams(location.search);
+        console.log(searchParams.get("ilisites"));
+        // TODO: on server exact match? nur ilisite?
+        
+        // Get pathname to handle url correctly for resources (e.g. logos and server requests)
         pathname = location.pathname;
 
         if (pathname.contains("index.html")) {
@@ -96,9 +106,15 @@ public class App implements EntryPoint {
         // Switch button for toggling results.
         SwitchButton switchButton = SwitchButton.create("Expand results", "off", "on")
             .addChangeHandler(
-                    value -> {
-                        // TODO
-                        Notification.createInfo("test " + value).show();
+                    value -> {      
+                        HTMLCollection<Element> repoDetailElements = resultContent.getElementsByClassName("repo-details");
+                        for (Element element : repoDetailElements.asList()) {
+                            if (value) {
+                                element.setAttribute("open", true); 
+                            } else  {
+                                element.removeAttribute("open"); 
+                            }
+                        } 
                     })
             .setOffTitle("OFF")
             .setOnTitle("ON")
@@ -111,9 +127,7 @@ public class App implements EntryPoint {
             public void handleEvent(Event evt) {
                 textBox.clear();
                 
-                while(resultContent.firstChild != null) {
-                    resultContent.removeChild(resultContent.firstChild);
-                }           
+                removeResults();
                 
                 switchButton.uncheck();
             }
@@ -132,7 +146,7 @@ public class App implements EntryPoint {
         // reverse proxies and/or api gateways.
         textBox.addEventListener("keyup", event -> {
             if (textBox.getValue().trim().length() == 0) {
-                //listStore.setData(datasets);
+                removeResults();          
                 return;
             }
 
@@ -143,24 +157,23 @@ public class App implements EntryPoint {
                 return response.text();
             }).then(json -> {                
                 JsPropertyMap<?> parsed = Js.cast(Global.JSON.parse(json));
-                DomGlobal.console.info(parsed);
+                //DomGlobal.console.info(parsed);
                 
                 // TODO: remember which repo was opened?
                 
-                while(resultContent.firstChild != null) {
-                    resultContent.removeChild(resultContent.firstChild);
-                }
+                removeResults();
                 
                 parsed.forEach(new JsForEachCallbackFn() {
                     @Override
                     public void onKey(String key) {
                         JsArray<ModelInfo> modelInfoArray = (JsArray) parsed.get(key);
-                        console.log(modelInfoArray);
-                                                
-                        // TODO: respect switch button (auch beim Start)!!
-                        
+                                                                        
                         HTMLElement details = (HTMLElement) document.createElement("details");
                         details.className = "repo-details";
+                        
+                        if (switchButton.isChecked()) {
+                            details.setAttribute("open", true);
+                        }
                         
                         HTMLElement summary = (HTMLElement) document.createElement("summary");
                         summary.className = "repo-summary";
@@ -174,7 +187,7 @@ public class App implements EntryPoint {
                         for (ModelInfo modelInfo : modelInfoArray.asList()) {                            
                             HTMLElement modelDetails = (HTMLElement) document.createElement("details");
                             modelDetails.className = "model-details";
-                            
+                                                        
                             HTMLElement modelSummary = (HTMLElement) document.createElement("summary");
                             modelSummary.className = "model-summary";
                             
@@ -183,12 +196,173 @@ public class App implements EntryPoint {
                                     .attr("class", "icon-link")
                                     .attr("href", modelInfo.getFile())
                                     .attr("target", "_blank").add(launchIcon).element();
-                                                        
-                            
+                                                                                    
                             modelSummary.appendChild(span().add(TextNode.of(modelInfo.getName() + " ")).add(modelLink).element());
 
+                            HTMLParagraphElement modelParagraph = p().style("margin-top: 10px;").element();
+                            
+                            HTMLTableElement modelTable = table().element();
+                            modelTable.id = "model-table";
+                            modelTable.appendChild(
+                                    colgroup().add(col().attr("span", "1").style("width: 20%")).add(col().attr("span", "1").style("width: 80%")).element());
+                            HTMLTableSectionElement modelTableBody = tbody().element();
+                            modelTableBody.appendChild(
+                                    tr().add(
+                                            td().add("Version:"))
+                                        .add(
+                                            td().add(modelInfo.getVersion())).element());
+                            
+                            modelTableBody.appendChild(
+                                    tr().add(
+                                            td().add("File:"))
+                                        .add(
+                                            td().add(
+                                                    a()
+                                                        .attr("class", "result")
+                                                        .attr("href", modelInfo.getFile())
+                                                        .attr("target", "_blank")
+                                                            .add(modelInfo.getFile())
+                                                    )).element());
 
-                            modelDetails.append(modelSummary);
+                            if (modelInfo.getFurtherInformation() != null) {
+                                modelTableBody.appendChild(
+                                        tr().add(
+                                                td().add("Further information:"))
+                                            .add(
+                                                td().add(
+                                                        a()
+                                                            .attr("class", "result")
+                                                            .attr("href", modelInfo.getFurtherInformation())
+                                                            .attr("target", "_blank")
+                                                                .add(modelInfo.getFurtherInformation())
+                                                        )).element());
+                            }
+                            
+                            if (modelInfo.getIssuer() != null) {
+                                modelTableBody.appendChild(
+                                        tr().add(
+                                                td().add("Issuer:"))
+                                            .add(
+                                                td().add(
+                                                        a()
+                                                            .attr("class", "result")
+                                                            .attr("href", modelInfo.getIssuer())
+                                                            .attr("target", "_blank")
+                                                                .add(modelInfo.getIssuer())
+                                                        )).element());
+                            }
+
+                            if (modelInfo.getTechnicalContact() != null) {
+                                modelTableBody.appendChild(
+                                        tr().add(
+                                                td().add("Technical contact:"))
+                                            .add(
+                                                td().add(
+                                                        a()
+                                                            .attr("class", "result")
+                                                            .attr("href", modelInfo.getTechnicalContact())
+                                                            .attr("target", "_blank")
+                                                                .add(modelInfo.getTechnicalContact())
+                                                        )).element());
+                            }
+
+                            if (modelInfo.getFile().contains("geo.admin.ch") && modelInfo.getIdgeoiv() != null) {
+                                modelTableBody.appendChild(
+                                        tr().add(
+                                                td().add("ID GeoIV:"))
+                                            .add(
+                                                td().add(modelInfo.getIdgeoiv())).element());
+                            }
+
+                            if (!modelInfo.getFile().contains("geo.admin.ch") && modelInfo.getTag() != null) {
+                                modelTableBody.appendChild(
+                                        tr().add(
+                                                td().add("Tags:"))
+                                            .add(
+                                                td().add(modelInfo.getTag())).element());
+                            }
+                            
+                            if (modelInfo.getPrecursorVersion() != null) {
+                                modelTableBody.appendChild(
+                                        tr().add(
+                                                td().add("Precursor version:"))
+                                            .add(
+                                                td().add(modelInfo.getPrecursorVersion())).element());
+                            }
+
+                            modelTable.appendChild(modelTableBody);
+                            modelParagraph.appendChild(modelTable);
+                            
+//                            <div style="overflow-x:auto;">
+//                            <table>
+//                            <colgroup>
+//                            <col span="1" style="width: 20%;"/>
+//                            <col span="1" style="width: 80%;"/>
+//                            </colgroup>
+//                            <tbody>
+//                            <tr>
+//                            <td>Beschreibung:</td>
+//                            <td>—</td>
+//                            </tr>
+//                            <tr>
+//                            <td>Version:</td>
+//                            <td>
+//                            <xsl:value-of select="ili:Version"/>
+//                            </td>
+//                            </tr>
+//                            <tr>
+//                            <td>Abhängigkeiten:</td>
+//                            <xsl:if test="count(ili:dependsOnModel/ili:IliRepository09.ModelName_) > 0">
+//                            <td>
+//                            <xsl:for-each select="ili:dependsOnModel/ili:IliRepository09.ModelName_">
+//                            <xsl:value-of select="ili:value"/>
+//                            <xsl:if test="position()!=last()">
+//                            <xsl:text>, </xsl:text>
+//                            </xsl:if>
+//                            </xsl:for-each>
+//                            </td>
+//                            </xsl:if>
+//                            <xsl:if test="count(ili:dependsOnModel/ili:IliRepository09.ModelName_) = 0">
+//                            <td>
+//                            <xsl:text>—</xsl:text>
+//                            </td>
+//                            </xsl:if>
+//                            </tr>
+//                            <tr>
+//                            <td>Fachamt:</td>
+//                            <td>
+//                            <xsl:element name="a">
+//                            <xsl:attribute name="class">
+//                            <xsl:text>default-link</xsl:text>
+//                            </xsl:attribute>
+//                            <xsl:attribute name="href">
+//                            <xsl:value-of select="ili:Issuer"/>
+//                            </xsl:attribute>
+//                            <xsl:value-of select="ili:Issuer"/>
+//                            </xsl:element>
+//                            </td>
+//                            </tr>
+//                            <tr>
+//                            <td>Technischer Kontakt:</td>
+//                            <td>
+//                            <xsl:element name="a">
+//                            <xsl:attribute name="class">
+//                            <xsl:text>default-link</xsl:text>
+//                            </xsl:attribute>
+//                            <xsl:attribute name="href">
+//                            <xsl:value-of select="ili:technicalContact"/>
+//                            </xsl:attribute>
+//                            <xsl:value-of select="ili:technicalContact"/>
+//                            </xsl:element>
+//                            </td>
+//                            </tr>
+//                            </tbody>
+//                            </table>
+//                            </div>
+
+                            
+
+                            modelDetails.append(modelSummary, modelParagraph);
                             paragraph.append(modelDetails);
                             
                         }
@@ -379,5 +553,11 @@ public class App implements EntryPoint {
 //                resultContainer.appendChild(resultContent);                
 //            }
 //        });
+	}
+	
+	private void removeResults() {
+        while(resultContent.firstChild != null) {
+            resultContent.removeChild(resultContent.firstChild);
+        }
 	}
 }

@@ -283,7 +283,6 @@ public class LuceneSearcher {
                             + "issuer:*" + token + "* OR "
                             + "technicalcontact:*" + token + "* OR "
                             + "furtherinformation:*" + token + "* OR "
-                            //+ "md5:" + token + "* OR "
                             + "idgeoiv:" + token + "*^20 "
                                     + ")";
                     if (i<splitedQuery.length-1) {

@@ -60,7 +60,11 @@ body, div {
 
 .model-details {
     padding-left: 20px;
-    padding-top: 12px;
+    padding-top: 10px;
+    padding-bottom: 10px;
+
+    /*border-bottom: 1px solid #f4f4f4;*/
+
 }
 
 .model-summary {
@@ -71,6 +75,17 @@ body, div {
 	vertical-align: -3px;
 	cursor: pointer;
 }
+
+#model-table {
+	margin: 5px;
+	width: 100%;
+	background-color: rgba(237, 237, 237, 0.3);
+}
+
+th, td {
+    text-align: left;
+    padding: 8px;
+} 
 
 a.icon-link {
     overflow: hidden;
