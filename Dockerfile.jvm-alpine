@@ -8,7 +8,7 @@ COPY modelfinder-server/target/modelfinder.jar modelfinder.jar
 RUN cd /home/modelfinder && \
     chown -R $UID:0 . && \
     chmod -R g+rw . && \
-    ls -la /home/modelfinder
+    ls -la
 
 USER $UID
 EXPOSE 8080
