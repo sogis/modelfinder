@@ -1,13 +1,16 @@
 FROM bellsoft/liberica-openjdk-alpine-musl:11.0.14
 
+ARG UID=1001
+RUN adduser modelfinder -g 'modelfinder user' -D --uid $UID
+
 WORKDIR /home/modelfinder
 COPY modelfinder-server/target/modelfinder.jar /home/modelfinder/modelfinder.jar
 RUN cd /home/modelfinder && \
-    chown -R 1001:0 /home/modelfinder && \
+    chown -R $UID:0 /home/modelfinder && \
     chmod -R g+rw /home/modelfinder && \
     ls -la /home/modelfinder
 
-USER 1001
+USER $UID
 EXPOSE 8080
 ENV LOG4J_FORMAT_MSG_NO_LOOKUPS=true
 CMD java -XX:MaxRAMPercentage=80.0 -jar modelfinder.jar
