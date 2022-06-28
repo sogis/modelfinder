@@ -5,8 +5,8 @@ RUN adduser modelfinder -g 'modelfinder user' -D --uid $UID
 
 WORKDIR /home/modelfinder
 COPY modelfinder-server/target/modelfinder.jar modelfinder.jar
-RUN chown -R $UID:0 . && \
-    chmod -R g+rw . && \
+RUN chown $UID:0 . && \
+    chmod g+rw . && \
     ls -la
 
 USER $UID
