@@ -3,7 +3,8 @@ FROM bellsoft/liberica-openjdk-alpine-musl:11.0.14
 ARG UID=1001
 RUN adduser modelfinder -g 'modelfinder user' -D --uid $UID
 
-WORKDIR /home/modelfinder
+ENV HOME=/home/modelfinder
+WORKDIR $HOME
 COPY modelfinder-server/target/modelfinder.jar modelfinder.jar
 RUN chown $UID:0 . && \
     chmod 0775 . && \
