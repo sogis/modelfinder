@@ -1,5 +1,6 @@
 FROM bellsoft/liberica-openjdk-alpine-musl:11.0.14
 
+ENV HOME=/home/modelfinder
 WORKDIR /home/modelfinder
 COPY modelfinder-server/target/modelfinder.jar /home/modelfinder/modelfinder.jar
 RUN cd /home/modelfinder && \
