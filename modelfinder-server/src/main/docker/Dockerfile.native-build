@@ -12,16 +12,15 @@ RUN apt-get update && apt-get install -y xz-utils && \
     xz -d -c /usr/local/upx-3.96-amd64_linux.tar.xz | tar -xOf - upx-3.96-amd64_linux/upx > /bin/upx && \
     chmod a+x /bin/upx
 WORKDIR /home/app
-COPY --from=0 /home/app/modelfinder-server/target/io.github.sogis.application /home/app
-RUN upx -7 -k /home/app/io.github.sogis.application
+COPY --from=0 /home/app/modelfinder-server/target/ch.so.agi.application /home/app
+RUN upx -7 -k /home/app/ch.so.agi.application
 
 FROM registry.access.redhat.com/ubi8/ubi-minimal:8.3
 WORKDIR /work/
 RUN chown 1001 /work \
     && chmod "g+rwX" /work \
     && chown 1001:root /work
-COPY --from=1 --chown=1001:root /home/app/io.github.sogis.application /work/application
+COPY --from=1 --chown=1001:root /home/app/ch.so.agi.application /work/application
 EXPOSE 8080
 USER 1001
 CMD ["./application"]
-

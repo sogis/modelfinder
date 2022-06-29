@@ -3,7 +3,7 @@
   <modelVersion>4.0.0</modelVersion>
 
   <parent>
-    <groupId>io.github.sogis</groupId>
+    <groupId>ch.so.agi</groupId>
     <artifactId>modelfinder</artifactId>
     <version>0.0.1-SNAPSHOT</version>
   </parent>
@@ -13,17 +13,6 @@
 
   <dependencies>
     <dependency>
-      <groupId>${project.groupId}</groupId>
-      <artifactId>modelfinder-shared</artifactId>
-      <version>${project.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>${project.groupId}</groupId>
-      <artifactId>modelfinder-shared</artifactId>
-      <version>${project.version}</version>
-      <classifier>sources</classifier>
-    </dependency>
-    <dependency>
       <groupId>com.google.gwt</groupId>
       <artifactId>gwt-user</artifactId>
     </dependency>
@@ -31,6 +20,20 @@
       <groupId>com.google.gwt</groupId>
       <artifactId>gwt-dev</artifactId>
     </dependency>
+
+    <dependency>
+      <groupId>${project.groupId}</groupId>
+      <artifactId>modelfinder-shared</artifactId>
+      <version>${project.version}</version>
+      <type>gwt-lib</type>
+    </dependency>
+    <dependency>
+      <groupId>${project.groupId}</groupId>
+      <artifactId>modelfinder-shared</artifactId>
+      <version>${project.version}</version>
+      <classifier>sources</classifier>
+    </dependency>
+
     <dependency>
       <groupId>org.dominokit</groupId>
       <artifactId>domino-ui</artifactId>
@@ -46,50 +49,32 @@
     <dependency>
       <groupId>com.github.tdesjardins</groupId>
       <artifactId>gwt-ol3</artifactId>
-      <version>7.3.0-gwt2_9</version>
+      <version>8.1.0-gwt2_9</version>
+      <type>gwt-lib</type>
+    </dependency>
+    <dependency>
+      <groupId>com.github.nmorel.gwtjackson</groupId>
+      <artifactId>gwt-jackson</artifactId>
+      <version>0.15.4</version>
     </dependency>
     -->
   </dependencies>
 
-<!-- 
-  <repositories>
-    <repository>
-      <id>sonatype-snapshots-repo</id>
-      <url>https://oss.sonatype.org/content/repositories/snapshots</url>
-      <snapshots>
-        <updatePolicy>always</updatePolicy>
-        <checksumPolicy>fail</checksumPolicy>
-      </snapshots>
-    </repository>
-    <repository>
-      <id>vertispan-snapshots</id>
-      <name>Vertispan Snapshots</name>
-      <url>https://repo.vertispan.com/gwt-snapshot/</url>
-      <snapshots>
-        <updatePolicy>always</updatePolicy>
-        <checksumPolicy>fail</checksumPolicy>
-      </snapshots>
-    </repository>
-  </repositories>
- -->
- 
   <build>
     <plugins>
       <plugin>
         <groupId>net.ltgt.gwt.maven</groupId>
         <artifactId>gwt-maven-plugin</artifactId>
         <configuration>
-          <moduleName>io.github.sogis.App</moduleName>
+          <moduleName>ch.so.agi.App</moduleName>
           <moduleShortName>app</moduleShortName>
+          <workDir>${basedir}/target/gwt/workDir</workDir>
           <compilerArgs>
-            <!-- fetch() in Safari does not work without disable cast checking. -->
             <compilerArg>-XdisableCastChecking</compilerArg>
             <compilerArg>-XnoclassMetadata</compilerArg>
+            <arg>-gen</arg>
+            <arg>${basedir}/target/gwt/gen</arg>
           </compilerArgs>
-          <codeserverArgs>
-            <codeserverArg>-style</codeserverArg>
-            <codeserverArg>PRETTY</codeserverArg>
-          </codeserverArgs>
         </configuration>
       </plugin>
     </plugins>
