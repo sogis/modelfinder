@@ -35,6 +35,14 @@ Or without downloading all the snapshots again:
 
 ## Build
 
+### JVM
+
+### Native
+
+```
+
+```
+
 ## Run
 
 ## Todo
