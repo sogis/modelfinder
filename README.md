@@ -33,11 +33,12 @@ Or without downloading all the snapshots again:
 ./mvnw gwt:codeserver -pl *-client -am -nsu
 ```
 
+## Build
+
+## Run
+
 ## Todo
-- Rename packages
 - Docker images versioning. 
-- Build image with Maven?
-- Maven build noch ins Image verlagern. Ist so ein wenig verfrickelt.
 - Tests
   * disable commandlinerunner in tests?
 - ...
