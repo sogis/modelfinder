@@ -145,6 +145,10 @@ public class App implements EntryPoint {
         // See pathname: should handle paths that are set in 
         // reverse proxies and/or api gateways.
         textBox.addEventListener("keyup", event -> {
+            if (textBox.getValue().trim().length() > 0 && textBox.getValue().trim().length() <=2) {
+                return;
+            }
+            
             if (textBox.getValue().trim().length() == 0) {
                 removeResults();          
                 return;

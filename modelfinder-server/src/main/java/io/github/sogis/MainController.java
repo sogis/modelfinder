@@ -34,6 +34,7 @@ public class MainController {
     @Autowired
     LuceneSearcher searcher;
     
+    // TODO: move to yml?
     @Value("${lucene.query.default.records:20}")
     private Integer QUERY_DEFAULT_RECORDS;
 
@@ -108,10 +109,10 @@ public class MainController {
     }
     
     // TODO: remove
-    @GetMapping("/reindex")
-    public void reindex() {
-        this.rebuildIndex();
-    } 
+//    @GetMapping("/reindex")
+//    public void reindex() {
+//        this.rebuildIndex();
+//    } 
  
     @Scheduled(cron="0 */2 * * *")
     private void rebuildIndex() {
