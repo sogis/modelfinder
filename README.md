@@ -71,7 +71,6 @@ http://localhost:8080/actuator/health/
 Nach dem Hochfahren wird der Suchindex erstellt. Während des Erstellens ist die Anwendung "live" aber noch nicht "ready". Der Scheduler scheint mir auf Digitalocean nicht zu funktionieren. Ebenfalls können einige Repos nicht gelesen werden (Firewall?).
 
 
-
 ## Todo
 - Jar versioning? In Kombination mit Dockerimage (gh action workflow)
 - ...
