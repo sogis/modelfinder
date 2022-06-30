@@ -7,6 +7,6 @@
   {"excludeClasses": "org.mockito.**"},
   {"excludeClasses": "org.springframework.test.**"},
   {"excludeClasses": "org.springframework.boot.test.**"},
-  {"excludeClasses": "ch.so.agi.ApplicationTests"}
+  {"excludeClasses": "ch.so.agi.modelfinder.ApplicationTests"}
   ]
 }

@@ -33,4 +33,11 @@ class ApplicationTests {
         assertThat(this.restTemplate.getForObject("http://localhost:" + port + "/search?query=wald", String.class))
                 .contains("Wald");
     }
+    
+    @Test
+    public void search_Restricted_Ok() throws Exception {
+        assertThat(this.restTemplate.getForObject("http://localhost:" + port + "/search?query=wald&ilisite=models.geo.admin.ch", String.class))
+                .contains("Wald");
+    }
+
 }
