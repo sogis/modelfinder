@@ -88,7 +88,7 @@ jobs:
       DOCKER_REPO: modelfinder-jvm
       DOCKER_PASSWORD: ${{secrets.DOCKER_PASSWORD}}
       DOCKER_USERNAME: ${{secrets.DOCKER_USERNAME}} 
-      #DIGITALOCEAN_TOKEN: ${{secrets.DIGITALOCEAN_TOKEN}}
+      DIGITALOCEAN_TOKEN: ${{secrets.DIGITALOCEAN_TOKEN}}
       BUILD_NUMBER: ${{ github.run_number }}
       VERSION: 0.0.${{ github.run_number }}
 
