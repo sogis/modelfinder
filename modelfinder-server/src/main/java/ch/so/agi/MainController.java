@@ -37,8 +37,8 @@ public class MainController {
     LuceneSearcher searcher;
     
     // TODO: move to yml?
-    @Value("${lucene.query.default.records:20}")
-    private Integer QUERY_DEFAULT_RECORDS;
+//    @Value("${lucene.query.default.records:20}")
+//    private Integer QUERY_DEFAULT_RECORDS;
 
     @Value("${lucene.query.max.records:5000}")
     private Integer QUERY_MAX_RECORDS;   

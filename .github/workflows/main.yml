@@ -1,9 +1,11 @@
 name: CI/CD
 
-on: [push]
+on:
+  workflow_dispatch:
+  push:
 
 jobs:
-  build-test-publish:
+  build-jvm:
     env:
       DOCKER_ACCOUNT: sogis
       DOCKER_REPO: modelfinder
@@ -12,28 +14,27 @@ jobs:
       #DIGITALOCEAN_TOKEN: ${{secrets.DIGITALOCEAN_TOKEN}}
       BUILD_NUMBER: ${{ github.run_number }}
       VERSION: 0.0.${{ github.run_number }}
+
     runs-on: ubuntu-latest
+
     steps:
 
       - name: Print new build number
         run: echo "Build number is $BUILD_NUMBER"
 
-      - uses: actions/checkout@v1
+      - uses: actions/checkout@v3
 
-      - name: Set up JDK 11
-        uses: actions/setup-java@v1
+      - uses: actions/setup-java@v3
         with:
-          java-version: 11
+          distribution: 'temurin'
+          java-version: '11'
+          cache: 'liberica'
 
-      - uses: actions/cache@v1
-        with:
-          path: ~/.m2/repository
-          key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
-          restore-keys: |
-            ${{ runner.os }}-maven-
-
-      - name: Build Jar
-        run: ./mvnw clean package -Penv-prod
+      - name: Test and build Jar
+        run: |
+          ./mvnw clean test
+          ./mvnw -DskipTests -Penv-prod package
+          ls -la modelfinder-server/target
 
       - name: Set up QEMU for amd64 and arm64
         uses: docker/setup-qemu-action@27d0a4f181a40b142cce983c5393082c365d1480  # v1.2.0 (2021-10-22)
@@ -51,7 +52,7 @@ jobs:
           labels: |
             org.opencontainers.image.title=${{ env.DOCKER_REPO }}
             org.opencontainers.image.version=${{ env.VERSION }}
-            org.opencontainers.image.base.name=docker.io/bellsoft/liberica-openjdk-alpine-musl:11.0.14
+            org.opencontainers.image.base.name=docker.io/bellsoft/liberica-openjdk-alpine-musl:17.0.3
           tags: |
             type=raw,value=${{ env.VERSION }},enable=true,priority=200
             type=raw,value=0.0,enable=true,priority=200
@@ -68,8 +69,8 @@ jobs:
         uses: docker/build-push-action@a66e35b9cbcf4ad0ea91ffcaf7bbad63ad9e0229  # v2.7.0 (2021-10-22)
         with:
           platforms: linux/amd64,linux/arm64
-          context: .
-          file: Dockerfile.jvm-alpine
+          context: modelfinder-server
+          file: modelfinder-server/Dockerfile.jvm
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
           pull: true

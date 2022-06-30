@@ -36,17 +36,23 @@ Or without downloading all the snapshots again:
 ## Build
 
 ### JVM
+```
+./mvnw -Penv-prod clean package
+```
 
 ### Native
 
 ```
-
+./mvnw -Pnative test
+./mvnw -DskipTests -Penv-prod,native package
 ```
+
+Mir ist das in der Gesamtheit noch zuwenig klar und ich verstehe die Anleitung (spring-native) auch nicht so wirklich. Herausfordernd auch weil ich noch Gradle-Projekte habe. Bisher setzte ich bei den Tests das Profile "native" nicht und es hat funktioniert (auch mit Lucene). Hier war es aber notwendig. Es scheint (siehe POM), dass auch nur dann der Agent läuft (?). Dafür wird jetzt das Image zweimal gebuildet. 
 
 ## Run
 
 ## Todo
-- Docker images versioning. 
+- Jar versioning? In Kombination mit Dockerimage (gh action workflow)
 - Tests
   * disable commandlinerunner in tests?
 - ...
