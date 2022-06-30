@@ -2,19 +2,28 @@
 
 # modelfinder
 
-## Health checks
-http://localhost:8080/actuator/health/
+Einfaches Suchen und Finden von INTERLIS-Datenmodellen. Es werden die Default-INTERLIS-Modellablagen und die damit verknüpften Ablagen auf Basis der jeweiligen _ilimodels.xml_-Datei. Siehe _LuceneSearcher.java_ zwecks Umfang und Struktur der Indexierung. 
 
-Nach dem Hochfahren wird der Suchindex erstellt. Während des Erstellens ist die Anwendung "live" aber noch nicht "ready".
+## Anleitung
 
-## Suchindex
-- was
-- wie
-- wann (update)
-- ...
-- ...
-- ...
-- ...
+Die Anwendung kann vom Benutzer über zwei Query-Parameter gesteuert werden (z.B. über einen Bookmark):
+
+### expanded
+
+Ist `expanded=true` gesetzt, sind die INTERLIS-Modellablagen im Resultatefenster aufgeklappt. Fehlt der Query-Parameter oder ist er ungleich `true`, sind die Modellablagen nicht aufgeklappt. Die Details der Modelle sind immer zugeklappt.
+
+```
+http://localhost:8080?expanded=true
+```
+
+## ilisite
+
+Mit `ilisite=<repo_name>` wird nur innerhalb dieser INTERLIS-Modellablage gesucht. Weil man (ich?) momentan die transitiven iliSite-Url nicht kennen kann, sondern anhand der Modelldatei-Url bloss den Domain-Namen, wird im Prinzip dieser verwendet.
+
+```
+http://localhost:8080?ilisite=models.geo.admin.ch
+```
+
 
 ## Develop
 First terminal:
@@ -51,8 +60,18 @@ Mir ist das in der Gesamtheit noch zuwenig klar und ich verstehe die Anleitung (
 
 ## Run
 
+### Docker
+```
+docker run -p 8080:8080 sogis/modelfinder
+```
+
+### Health checks
+http://localhost:8080/actuator/health/
+
+Nach dem Hochfahren wird der Suchindex erstellt. Während des Erstellens ist die Anwendung "live" aber noch nicht "ready". Der Scheduler scheint mir auf Digitalocean nicht zu funktionieren. Ebenfalls können einige Repos nicht gelesen werden (Firewall?).
+
+
+
 ## Todo
 - Jar versioning? In Kombination mit Dockerimage (gh action workflow)
-- Tests
-  * disable commandlinerunner in tests?
 - ...
