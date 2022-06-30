@@ -12,7 +12,9 @@
     {"pattern":"\\Qpublic/app/css/mdi/fonts/materialdesignicons-webfont.woff\\E"},    
     {"pattern":"\\Qpublic/app/css/mdi/fonts/materialdesignicons-webfont.woff2\\E"},        
     {"pattern": ".*\\.js$"},
-    {"pattern": ".*\\.css$"}        
+    {"pattern": ".*\\.css$"},        
+    {"pattern": ".*\\.png$"},        
+    {"pattern": ".*\\.svg$"}        
   ]},
   "bundles":[]
 }

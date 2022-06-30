@@ -14,23 +14,25 @@ server:
 # ========================
 logging:
   level:
-    org.springframework: INFO 
+    org.springframework: ${LOG_LEVEL:INFO} 
 
 spring:
+  web:
     resources:
         static-locations: classpath:/launcherDir/,classpath:/public/
+    #resources:
+     #   static-locations: classpath:/launcherDir/,classpath:/public/
     devtools:
         restart:
             additional-exclude: launcherDir/**
 
 management:
-  health:
-    probes:
-      enabled: true
-  endpoint:
-    health: 
-      show-details: always
-
+    health:
+        probes:
+            enabled: true
+    endpoint:
+        health: 
+            show-details: always
 
 # spring:
 #     profiles:
@@ -38,7 +40,11 @@ management:
 
 # ========================
 # APPLICATION
-# ========================
+# ========================   
+#lucene:
+#    queryDefaultRecords: ${LUCENE_QUERY_DEFAULT_RECORDS:10}
+#    queryMaxRecords: ${LUCENE_QUERY_MAX_RECORDS:50}
+
 app:
     myVar: ${VAR:defaultValue}
     index-directory: ${indexDirectory:/tmp/}

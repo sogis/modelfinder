@@ -1,16 +1,19 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+
+<project
+  xmlns="http://maven.apache.org/POM/4.0.0"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
   <parent>
-    <groupId>io.github.sogis</groupId>
+    <groupId>ch.so.agi</groupId>
     <artifactId>modelfinder</artifactId>
     <version>0.0.1-SNAPSHOT</version>
   </parent>
   <artifactId>modelfinder-server</artifactId>
+  <!--<packaging>war</packaging>-->
   <properties>
     <java.version>11</java.version>
-    <repackage.classifier/>
-    <spring-native.version>0.10.1</spring-native.version>
+    <spring-native.version>0.11.4</spring-native.version>
   </properties>
   <dependencies>
     <dependency>
@@ -19,24 +22,27 @@
       <version>${project.version}</version>
     </dependency>
     <!-- only needed if you are using GWT-RPC -->
-    <!--
     <dependency>
       <groupId>com.google.gwt</groupId>
       <artifactId>gwt-servlet</artifactId>
     </dependency>
-    -->
     <dependency>
       <groupId>org.springframework.boot</groupId>
       <artifactId>spring-boot-starter-web</artifactId>
     </dependency>
     <dependency>
       <groupId>org.springframework.boot</groupId>
-      <artifactId>spring-boot-starter-test</artifactId>
-      <scope>test</scope>
+      <artifactId>spring-boot-devtools</artifactId>
+      <optional>true</optional>
     </dependency>
     <dependency>
       <groupId>org.springframework.boot</groupId>
       <artifactId>spring-boot-starter-actuator</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-test</artifactId>
+      <scope>test</scope>
     </dependency>
     <dependency>
       <groupId>org.springframework.experimental</groupId>
@@ -50,7 +56,7 @@
     </dependency>
     <dependency>
       <groupId>org.apache.lucene</groupId>
-      <artifactId>lucene-queryparser</artifactId> 
+      <artifactId>lucene-queryparser</artifactId>
       <version>8.9.0</version>
     </dependency>
     <dependency>
@@ -75,6 +81,13 @@
       <plugin>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-maven-plugin</artifactId>
+        <executions>
+          <execution>
+            <goals>
+              <goal>repackage</goal>
+            </goals>
+          </execution>
+        </executions>
         <configuration>
           <skip>false</skip>
         </configuration>
@@ -85,6 +98,7 @@
         <version>${spring-native.version}</version>
         <configuration>
           <removeSpelSupport>true</removeSpelSupport>
+          <removeXmlSupport>false</removeXmlSupport>
           <removeYamlSupport>false</removeYamlSupport>
         </configuration>
         <executions>
@@ -127,16 +141,25 @@
           </execution>
         </executions>
       </plugin>
+      <!--  Avoid a clash between Spring Boot repackaging and native-maven-plugin:
+            Main-Klasse wird von native-image nicht gefunden. -->
+      <plugin>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-maven-plugin</artifactId>
+        <configuration>
+          <classifier>exec</classifier>
+        </configuration>
+      </plugin>
     </plugins>
   </build>
   <repositories>
     <repository>
-      <id>spring-release</id>
-      <name>Spring Release</name>
+      <id>spring-releases</id>
+      <name>Spring Releases</name>
       <url>https://repo.spring.io/release</url>
-      <releases>
-        <enabled>true</enabled>
-      </releases>
+      <snapshots>
+        <enabled>false</enabled>
+      </snapshots>
     </repository>
     <repository>
       <id>eisenhut</id>
@@ -149,56 +172,72 @@
   </repositories>
   <pluginRepositories>
     <pluginRepository>
-      <id>spring-release</id>
-      <name>Spring Release</name>
+      <id>spring-releases</id>
+      <name>Spring Releases</name>
       <url>https://repo.spring.io/release</url>
+      <snapshots>
+        <enabled>false</enabled>
+      </snapshots>
     </pluginRepository>
   </pluginRepositories>
   <profiles>
     <profile>
-      <id>only-eclipse</id>
-      <activation>
-        <property>
-          <name>m2e.version</name>
-        </property>
-      </activation>
+      <id>native</id>
+      <properties>
+        <repackage.classifier>exec</repackage.classifier>
+        <native-buildtools.version>0.9.11</native-buildtools.version>
+      </properties>
+      <dependencies>
+        <dependency>
+          <groupId>org.junit.platform</groupId>
+          <artifactId>junit-platform-launcher</artifactId>
+          <scope>test</scope>
+        </dependency>
+      </dependencies>
       <build>
-        <pluginManagement>
-          <plugins>
-            <plugin>
-              <groupId>org.eclipse.m2e</groupId>
-              <artifactId>lifecycle-mapping</artifactId>
-              <version>1.0.0</version>
-              <configuration>
-                <lifecycleMappingMetadata>
-                  <pluginExecutions>
-                    <pluginExecution>
-                      <pluginExecutionFilter>
-                        <groupId>org.apache.maven.plugins</groupId>
-                        <artifactId>maven-dependency-plugin</artifactId>
-                        <versionRange>3.1.1</versionRange>
-                        <goals>
-                          <goal>unpack</goal>
-                        </goals>
-                      </pluginExecutionFilter>
-                      <action>
-                        <ignore />
-                      </action>
-                    </pluginExecution>
-                  </pluginExecutions>
-                </lifecycleMappingMetadata>
-              </configuration>
-            </plugin>
-          </plugins>
-        </pluginManagement>
+        <plugins>
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-surefire-plugin</artifactId>
+            <configuration>
+              <argLine>-agentlib:native-image-agent=access-filter-file=src/test/resources/access-filter.json,config-merge-dir=target/classes/META-INF/native-image</argLine>
+            </configuration>
+          </plugin>
+          <plugin>
+            <groupId>org.graalvm.buildtools</groupId>
+            <artifactId>native-maven-plugin</artifactId>
+            <version>${native-buildtools.version}</version>
+            <configuration>
+              <buildArgs>
+                <buildArg>--static</buildArg>
+                <buildArg>--libc=musl</buildArg>
+              </buildArgs>
+            </configuration>
+            <extensions>true</extensions>
+            <executions>
+              <execution>
+                <id>test-native</id>
+                <phase>test</phase>
+                <goals>
+                  <goal>test</goal>
+                </goals>
+              </execution>
+              <execution>
+                <id>build-native</id>
+                <phase>package</phase>
+                <goals>
+                  <goal>build</goal>
+                </goals>
+              </execution>
+            </executions>
+          </plugin>
+        </plugins>
       </build>
     </profile>
     <profile>
       <!-- XXX: We want to exclude modelfinder-client from 'env-dev' profile, Maven forces us to make a 'env-prod' profile -->
       <id>env-prod</id>
-      <activation>
-        <activeByDefault>true</activeByDefault>
-      </activation>
+      <activation></activation>
       <build>
         <plugins>
           <!-- Das ist "build smell", weil das Entpacken vor dem Packen kommt. Eclipse und Maven reklamiert auch. Siehe README.md -->
@@ -234,83 +273,12 @@
     </profile>
     <profile>
       <id>env-dev</id>
-      <dependencies>
-        <dependency>
-          <groupId>org.springframework.boot</groupId>
-          <artifactId>spring-boot-devtools</artifactId>
-          <scope>runtime</scope>
-          <optional>true</optional>
-        </dependency>
-      </dependencies>
       <activation>
         <property>
           <name>env</name>
           <value>dev</value>
         </property>
       </activation>
-    </profile>
-    <profile>
-      <id>native</id>
-      <properties>
-        <repackage.classifier>exec</repackage.classifier>
-        <native-buildtools.version>0.9.1</native-buildtools.version>
-      </properties>
-      <dependencies>
-        <dependency>
-          <groupId>org.graalvm.buildtools</groupId>
-          <artifactId>junit-platform-native</artifactId>
-          <version>${native-buildtools.version}</version>
-          <scope>test</scope>
-        </dependency>
-      </dependencies>
-      <build>
-        <plugins>
-          <plugin>
-            <groupId>org.apache.maven.plugins</groupId>
-            <artifactId>maven-surefire-plugin</artifactId>
-            <configuration>
-              <argLine>-agentlib:native-image-agent=access-filter-file=src/test/resources/access-filter.json,config-merge-dir=target/classes/META-INF/native-image</argLine>
-            </configuration>
-          </plugin>
-          <plugin>
-            <groupId>org.graalvm.buildtools</groupId>
-            <artifactId>native-maven-plugin</artifactId>
-            <version>${native-buildtools.version}</version>
-            <executions>
-              <execution>
-                <id>test-native</id>
-                <goals>
-                  <goal>test</goal>
-                </goals>
-                <phase>test</phase>
-              </execution>
-              <execution>
-                <id>build-native</id>
-                <goals>
-                  <goal>build</goal>
-                </goals>
-                <phase>package</phase>
-              </execution>
-            </executions>
-            <configuration>
-              <buildArgs>
-                <buildArg>--enable-url-protocols=http</buildArg>
-                <buildArg>--no-fallback</buildArg>
-                <buildArg>-Dspring.native.remove-yaml-support=false</buildArg>
-                <buildArg>-Dspring.spel.ignore=true</buildArg>
-              </buildArgs>
-            </configuration>
-          </plugin>
-          <!-- Avoid a clash between Spring Boot repackaging and native-maven-plugin -->
-          <plugin>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-maven-plugin</artifactId>
-            <configuration>
-              <classifier>exec</classifier>
-            </configuration>
-          </plugin>
-        </plugins>
-      </build>
     </profile>
   </profiles>
 </project>

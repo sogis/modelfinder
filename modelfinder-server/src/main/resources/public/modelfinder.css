@@ -3,6 +3,7 @@ body {
   padding: 0px;
   background: #FFFFFF; 
   color: #333333;
+  font-size: 16px;
 }
 
 body, div {
@@ -30,6 +31,79 @@ body, div {
 #top-level-content {
     margin-top: 120px;
 }
+
+.switch label input[type=checkbox]:checked+.lever {
+    background-color: #c6282866 !important;
+}
+
+.switch label {
+  font-family: Frutiger, 'Fira Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+}
+
+.col-blue {
+	color: #c62828 !important;
+}
+
+#result-content {
+    /*background-color: wheat;*/
+    /*height: 600px;*/
+}
+
+.repo-details {
+    padding: 15px 0px;
+    border-bottom: 1px solid #eee;
+}
+
+.repo-summary {
+	display: list-item;
+}
+
+.model-details {
+    padding-left: 20px;
+    padding-top: 10px;
+    padding-bottom: 10px;
+
+    /*border-bottom: 1px solid #f4f4f4;*/
+
+}
+
+.model-summary {
+    display: list-item;
+}
+
+.model-launch-icon {
+	vertical-align: -3px;
+	cursor: pointer;
+}
+
+#model-table {
+	margin: 5px;
+	width: 100%;
+	background-color: rgba(237, 237, 237, 0.3);
+}
+
+th, td {
+    text-align: left;
+    padding: 8px;
+} 
+
+a.icon-link {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    color: #333333; 
+    text-decoration: none !important;
+}
+
+a.icon-link:hover {
+    color: #333333;
+    text-decoration: none !important;
+}  
+
+a.icon-link:visited {
+    color: #333333; 
+    text-decoration: none !important;
+}  
+
 
 .field-group input, .field-group textarea {
     /*font-family: 'Fira Sans', sans-serif !important;*/

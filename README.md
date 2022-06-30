@@ -2,42 +2,75 @@
 
 # modelfinder
 
-## Health checks
-http://localhost:8080/actuator/health/
+Einfaches Suchen und Finden von INTERLIS-Datenmodellen. Es werden die Default-INTERLIS-Modellablagen und die damit verknüpften Ablagen auf Basis der jeweiligen _ilimodels.xml_-Datei. Siehe _LuceneSearcher.java_ zwecks Umfang und Struktur der Indexierung. 
 
-Nach dem Hochfahren wird der Suchindex erstellt. Während des Erstellens ist die Anwendung "live" aber noch nicht "ready".
+## Anleitung
 
-## Suchindex
-- was
-- wie
-- wann (update)
-- ...
-- ...
-- ...
-- ...
+Die Anwendung kann vom Benutzer über zwei Query-Parameter gesteuert werden (z.B. über einen Bookmark):
+
+### expanded
+
+Ist `expanded=true` gesetzt, sind die INTERLIS-Modellablagen im Resultatefenster aufgeklappt. Fehlt der Query-Parameter oder ist er ungleich `true`, sind die Modellablagen nicht aufgeklappt. Die Details der Modelle sind immer zugeklappt.
+
+```
+http://localhost:8080?expanded=true
+```
+
+## ilisite
+
+Mit `ilisite=<repo_name>` wird nur innerhalb dieser INTERLIS-Modellablage gesucht. Weil man (ich?) momentan die transitiven iliSite-Url nicht kennen kann, sondern anhand der Modelldatei-Url bloss den Domain-Namen, wird im Prinzip dieser verwendet.
+
+```
+http://localhost:8080?ilisite=models.geo.admin.ch
+```
+
 
 ## Develop
 First terminal:
 ```
-mvn spring-boot:run -Penv-dev -pl *-server -am
+./mvnw spring-boot:run -Penv-dev -pl *-server -am
 ```
 
 Second terminal:
 ```
-mvn gwt:codeserver -pl *-client -am
+./mvnw gwt:codeserver -pl *-client -am
 ```
 
 Or without downloading all the snapshots again:
 
 ```
-mvn gwt:codeserver -pl *-client -am -nsu
+./mvnw gwt:codeserver -pl *-client -am -nsu
 ```
 
+## Build
+
+### JVM
+```
+./mvnw -Penv-prod clean package
+```
+
+### Native
+
+```
+./mvnw -Pnative test
+./mvnw -DskipTests -Penv-prod,native package
+```
+
+Mir ist das in der Gesamtheit noch zuwenig klar und ich verstehe die Anleitung (spring-native) auch nicht so wirklich. Herausfordernd auch weil ich noch Gradle-Projekte habe. Bisher setzte ich bei den Tests das Profile "native" nicht und es hat funktioniert (auch mit Lucene). Hier war es aber notwendig. Es scheint (siehe POM), dass auch nur dann der Agent läuft (?). Dafür wird jetzt das Image zweimal gebuildet. 
+
+## Run
+
+### Docker
+```
+docker run -p 8080:8080 sogis/modelfinder
+```
+
+### Health checks
+http://localhost:8080/actuator/health/
+
+Nach dem Hochfahren wird der Suchindex erstellt. Während des Erstellens ist die Anwendung "live" aber noch nicht "ready". Der Scheduler scheint mir auf Digitalocean nicht zu funktionieren. Ebenfalls können einige Repos nicht gelesen werden (Firewall?).
+
+
 ## Todo
-- Rename packages
-- Docker images versioning. 
-- Build image with Maven?
-- Maven build noch ins Image verlagern. Ist so ein wenig verfrickelt.
-- Tests
-  * disable commandlinerunner in tests?
+- Jar versioning? In Kombination mit Dockerimage (gh action workflow)
 - ...
