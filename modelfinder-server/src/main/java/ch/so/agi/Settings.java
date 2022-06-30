@@ -18,7 +18,7 @@ public class Settings {
     
     private List<String> repositories;
     
-    private List<String> defaultRepositories;
+//    private List<String> defaultRepositories;
 
     public String getMyVar() {
         return myVar;
@@ -36,11 +36,11 @@ public class Settings {
         this.repositories = repositories;
     }
 
-    public List<String> getDefaultRepositories() {
-        return defaultRepositories;
-    }
-
-    public void setDefaultRepositories(List<String> defaultRepositories) {
-        this.defaultRepositories = defaultRepositories;
-    }
+//    public List<String> getDefaultRepositories() {
+//        return defaultRepositories;
+//    }
+//
+//    public void setDefaultRepositories(List<String> defaultRepositories) {
+//        this.defaultRepositories = defaultRepositories;
+//    }
 }

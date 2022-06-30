@@ -63,11 +63,12 @@ public class MainController {
     // Cache durch Webserver? Wie lange?
     
     @GetMapping("/search")
-    public Map<String, List<ModelInfo>> searchModel(@RequestParam(value="query", required=false) String queryString) {
+    public Map<String, List<ModelInfo>> searchModel(@RequestParam(value="query", required=false) String queryString, 
+            @RequestParam(value="ilisite", required=false) String iliSite) {
         Result results = null;
                 
         try {
-            results = searcher.searchIndex(queryString, QUERY_MAX_RECORDS, QUERY_MAX_ALL_RECORDS, false);
+            results = searcher.searchIndex(queryString, iliSite, QUERY_MAX_RECORDS, QUERY_MAX_ALL_RECORDS, false);
             log.info("Search for '" + queryString +"' found " + results.getAvailable() + " and retrieved " + results.getRetrieved() + " records");            
         } catch (LuceneSearcherException | InvalidLuceneQueryException e) {
             throw new IllegalStateException(e);

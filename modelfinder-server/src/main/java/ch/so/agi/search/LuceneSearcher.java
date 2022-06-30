@@ -1,20 +1,12 @@
 package ch.so.agi.search;
 
-import java.io.File;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.net.URL;
-import java.net.URLEncoder;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.nio.file.attribute.FileAttribute;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -41,11 +33,8 @@ import org.apache.lucene.search.IndexSearcher;
 import org.apache.lucene.search.MatchAllDocsQuery;
 import org.apache.lucene.search.Query;
 import org.apache.lucene.search.ScoreDoc;
-import org.apache.lucene.search.Sort;
 import org.apache.lucene.search.TopDocs;
 import org.apache.lucene.search.TotalHitCountCollector;
-import org.apache.lucene.store.Directory;
-import org.apache.lucene.store.MMapDirectory;
 import org.apache.lucene.store.NIOFSDirectory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -53,14 +42,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Repository;
 
-import ch.interlis.ili2c.Ili2c;
 import ch.interlis.ili2c.Ili2cException;
-import ch.interlis.ili2c.ListModels2;
-import ch.interlis.ili2c.config.Configuration;
-import ch.interlis.ili2c.metamodel.Model;
-import ch.interlis.ili2c.metamodel.TransferDescription;
-import ch.interlis.ili2c.modelscan.IliFile;
-import ch.interlis.ilirepository.IliFiles;
 import ch.interlis.ilirepository.IliManager;
 import ch.interlis.ilirepository.impl.ModelLister;
 import ch.interlis.ilirepository.impl.ModelMetadata;
@@ -108,8 +90,8 @@ public class LuceneSearcher {
         writer.deleteAll();
         
         try {
-            manager = new IliManager();
-            manager.setRepositories(settings.getDefaultRepositories().toArray(new String[0]));
+//            manager = new IliManager();
+//            manager.setRepositories(settings.getDefaultRepositories().toArray(new String[0]));
 
             List<String> repositories = settings.getRepositories();
             RepositoryAccess repoAccess = new RepositoryAccess();
@@ -242,14 +224,15 @@ public class LuceneSearcher {
     
     /**
      * Search Lucene Index for records matching querystring
-     * @param querystring - human written query string from e.g. a search form
+     * @param queryString - human written query string from e.g. a search form
+     * @param iliSite - restrict search to this interlis repository
      * @param numRecords - number of requested records 
      * @param showAvailable - check for number of matching available records 
      * @return Top Lucene query results as a Result object
      * @throws LuceneSearcherException 
      * @throws InvalidLuceneQueryException 
      */
-    public Result searchIndex(String queryString, int numRecords, int maxAllRecords, boolean showAvailable)
+    public Result searchIndex(String queryString, String iliSite, int numRecords, int maxAllRecords, boolean showAvailable)
             throws LuceneSearcherException, InvalidLuceneQueryException {
         IndexReader reader = null;
         IndexSearcher indexSearcher = null;
@@ -283,10 +266,14 @@ public class LuceneSearcher {
                             + "issuer:*" + token + "* OR "
                             + "technicalcontact:*" + token + "* OR "
                             + "furtherinformation:*" + token + "* OR "
-                            + "idgeoiv:" + token + "*^20 "
-                                    + ")";
+                            + "idgeoiv:" + token + "*^20 ";
+                    luceneQueryString += ")";
                     if (i<splitedQuery.length-1) {
                         luceneQueryString += " AND ";
+                    }
+                    
+                    if (iliSite != null && iliSite.trim().length() > 0) {
+                        luceneQueryString += " AND (repository: " + iliSite + "^100)";
                     }
                 }
                             

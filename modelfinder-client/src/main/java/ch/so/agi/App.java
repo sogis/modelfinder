@@ -4,16 +4,8 @@ import static elemental2.dom.DomGlobal.console;
 import static elemental2.dom.DomGlobal.fetch;
 import static org.jboss.elemento.Elements.*;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.function.Consumer;
-
 import org.dominokit.domino.ui.forms.SwitchButton;
 import org.dominokit.domino.ui.icons.Icons;
-import org.dominokit.domino.ui.notifications.Notification;
 import org.dominokit.domino.ui.style.Color;
 import org.dominokit.domino.ui.style.ColorScheme;
 import org.dominokit.domino.ui.themes.Theme;
@@ -25,9 +17,6 @@ import com.google.gwt.i18n.client.NumberFormat;
 
 import elemental2.core.Global;
 import elemental2.core.JsArray;
-import elemental2.core.JsMap;
-import elemental2.core.JsMap.ForEachCallbackFn;
-import elemental2.dom.Document;
 import elemental2.dom.DomGlobal;
 import elemental2.dom.Element;
 import elemental2.dom.Event;
@@ -39,6 +28,7 @@ import elemental2.dom.HTMLParagraphElement;
 import elemental2.dom.HTMLTableElement;
 import elemental2.dom.HTMLTableSectionElement;
 import elemental2.dom.Location;
+import elemental2.dom.URL;
 import elemental2.dom.URLSearchParams;
 import jsinterop.base.Js;
 import jsinterop.base.JsForEachCallbackFn;
@@ -55,6 +45,7 @@ public class App implements EntryPoint {
     private String pathname;
     private HTMLElement resultContent;
     private boolean expanded = false;
+    private String ilisite = "";
 
     public void onModuleLoad() {
         init();
@@ -69,18 +60,18 @@ public class App implements EntryPoint {
         HTMLElement container = div().id("container").element();        
         body().add(container);        
 
-        // Get search params to restrict search.
+        // Get search params to handle "switch expand button" and to restrict the search.
         Location location = DomGlobal.window.location;
         URLSearchParams searchParams = new URLSearchParams(location.search);
-        console.log(searchParams.get("expanded"));
         
         String paramExpanded = searchParams.get("expanded");
         if (searchParams.has("expanded") && searchParams.get("expanded").toLowerCase() == "true") {
             expanded = true;
         }
         
-        
-        // TODO: on server exact match? nur ilisite?
+        if (searchParams.has("ilisite")) {
+             ilisite = searchParams.get("ilisite");
+        }
         
         // Get pathname to handle url correctly for resources (e.g. logos and server requests)
         pathname = location.pathname;
@@ -115,6 +106,12 @@ public class App implements EntryPoint {
         SwitchButton switchButton = SwitchButton.create("Expand results", "off", "on")
             .addChangeHandler(
                     value -> {      
+                        if (value) {
+                            updateUrlLocation("expanded", "true");
+                        } else  {
+                            updateUrlLocation("expanded", "false");
+                        }
+
                         HTMLCollection<Element> repoDetailElements = resultContent.getElementsByClassName("repo-details");
                         for (Element element : repoDetailElements.asList()) {
                             if (value) {
@@ -139,9 +136,7 @@ public class App implements EntryPoint {
             @Override
             public void handleEvent(Event evt) {
                 textBox.clear();
-                
                 removeResults();
-                
                 switchButton.uncheck();
             }
         });
@@ -167,16 +162,13 @@ public class App implements EntryPoint {
                 return;
             }
 
-            DomGlobal.fetch(pathname + "search?query=" + textBox.getValue().toLowerCase()).then(response -> {
+            DomGlobal.fetch(pathname + "search?query=" + textBox.getValue().toLowerCase() + "&ilisite=" + ilisite).then(response -> {
                 if (!response.ok) {
                     return null;
                 }
                 return response.text();
             }).then(json -> {                
                 JsPropertyMap<?> parsed = Js.cast(Global.JSON.parse(json));
-                //DomGlobal.console.info(parsed);
-                
-                // TODO: remember which repo was opened?
                 
                 removeResults();
                 
@@ -313,193 +305,14 @@ public class App implements EntryPoint {
                             modelDetails.append(modelSummary, modelParagraph);
                             paragraph.append(modelDetails);
                         }
-                                                
-
-                        
-//                        console.log("value: " + value);
-//                        if (value instanceof String) {
-//                            console.log("key: " + key);
-//                            console.log("value: " + value);
-//
-//                        }
                     }
                 });
-                
-                
-                
-                // models.geo.admin.ch [13]
-                // geo.so.ch [2]
-                
-
-//                JsArray<JsPropertyMap<String>> paymentMethods = Js.uncheckedCast(map.get("paymentMethods"));
-//                JsPropertyMap<String> method = paymentMethods.getAt(0);
-                
-//                LinkedHashMap<String, List<ModelInfo>> modelInfoMap = Js.uncheckedCast(json);                
-//                console.log(modelInfoMap);
-//                
-//                
-//                modelInfoMap.get("a");
-                
-//                for (var entry : modelInfoMap.entrySet()) {
-//                    
-//                    console.log(entry.getKey());
-//                }
-
-
-                //List<Dataset> filteredDatasets = mapper.read(json);
-                
-//                Collections.sort(filteredDatasets, new Comparator<Dataset>() {
-//                    @Override
-//                    public int compare(Dataset o1, Dataset o2) {
-//                        return o1.getTitle().toLowerCase().compareTo(o2.getTitle().toLowerCase());
-//                    }
-//                });
-
-                //listStore.setData(filteredDatasets);
-                
                 return null;
             }).catch_(error -> {
                 console.log(error);
                 return null;
             });
         });
-
-
-        
-        
-//        RequestInit requestInit = RequestInit.create();
-//        Headers headers = new Headers();
-//        headers.append("Content-Type", "application/x-www-form-urlencoded");
-//        requestInit.setHeaders(headers);
-//
-//        SuggestBoxStore dynamicStore = new SuggestBoxStore() {
-//
-//            @Override
-//            public void filter(String value, SuggestionsHandler suggestionsHandler) {
-//                if (value.trim().length() == 0) {
-//                    return;
-//                }
-//
-//                DomGlobal.fetch(pathname + "search?query=" + value.trim().toLowerCase(), requestInit)
-//                .then(response -> {
-//                    if (!response.ok) {
-//                        return null;
-//                    }
-//                    return response.text();
-//                })
-//                .then(json -> {                    
-//                    ModelInfo[] searchResults = (ModelInfo[]) Global.JSON.parse(json);
-//                    List<ModelInfo> searchResultList = Arrays.asList(searchResults);
-//                    
-//                    List<SuggestItem<ModelInfo>> suggestItems = new ArrayList<SuggestItem<ModelInfo>>();
-//
-//                    for (ModelInfo modelInfo : searchResultList) {
-//                        SuggestItem<ModelInfo> suggestItem = SuggestItem.create(modelInfo, modelInfo.getDisplayName(), Icons.ALL.file_document_outline_mdi());
-//                        suggestItems.add(suggestItem);
-//                    }
-//                   
-//                    suggestionsHandler.onSuggestionsReady(suggestItems);                    
-//                    return null;
-//                }).catch_(error -> {
-//                    console.log(error);
-//                    return null;
-//                });
-//            }
-//
-//            @Override
-//            public void find(Object searchValue, Consumer handler) {
-//                if (searchValue == null) {
-//                    return;
-//                }
-//                ModelInfo modelInfo = (ModelInfo) searchValue;
-//                SuggestItem<ModelInfo> suggestItem = SuggestItem.create(modelInfo, null);
-//                handler.accept(suggestItem);
-//            }
-//        };
-//      
-//        SuggestBox suggestBox = SuggestBox.create("Search for INTERLIS models...", dynamicStore);
-//        suggestBox.addLeftAddOn(Icons.ALL.search());
-//        suggestBox.getInputElement().setAttribute("autocomplete", "off");
-//        suggestBox.getInputElement().setAttribute("spellcheck", "false");
-//        suggestBox.setFocusOnClose(false);
-//        suggestBox.setFocusColor(Color.RED);        
-//        DropDownMenu suggestionsMenu = suggestBox.getSuggestionsMenu();
-//        suggestionsMenu.setPosition(new DropDownPositionDown());
-//        
-//        container.appendChild(div().id("suggestbox-div").add(suggestBox).element());
-//
-//        HTMLElement resultContainer = div().id("result-container").element();       
-//        container.appendChild(resultContainer);
-//
-//        suggestBox.addSelectionHandler(new SelectionHandler() {
-//            @Override
-//            public void onSelection(Object value) {
-//                if (resultContainer.firstChild != null) {
-//                    resultContainer.removeChild(resultContainer.firstChild);
-//                }
-//                  
-//                SuggestItem<ModelInfo> item = (SuggestItem<ModelInfo>) value;
-//                ModelInfo result = (ModelInfo) item.getValue();
-//                
-//                HTMLElement resultContent = div().id("result-content").element();
-//                resultContent.appendChild(h(4, "Name").element());
-//                resultContent.appendChild(p().textContent(result.getName()).element());
-//                
-//                resultContent.appendChild(h(4, "Version").element());
-//                resultContent.appendChild(p().textContent(result.getVersion()).element());
-//
-//                if (result.getTitle() != null) {
-//                    resultContent.appendChild(h(4, "Title").element());
-//                    resultContent.appendChild(p().textContent(result.getTitle()).element());
-//                }
-//                                
-//                resultContent.appendChild(h(4, "File").element());
-//                resultContent.appendChild(p().add(
-//                        a().css("result")
-//                        .attr("href", result.getFile())
-//                        .attr("target", "_blank").add(result.getFile()))
-//                        .element());
-//                
-//                if (result.getIdgeoiv() != null) {
-//                    resultContent.appendChild(h(4, "ID GeoIV").element());
-//                    resultContent.appendChild(p().textContent(result.getIdgeoiv()).element());
-//                }
-//                
-//                if (result.getFurtherInformation() != null) {
-//                    resultContent.appendChild(h(4, "Further information").element());
-//                    resultContent.appendChild(p().add(
-//                            a().css("result")
-//                            .attr("href", result.getFurtherInformation())
-//                            .attr("target", "_blank").add(result.getFurtherInformation()))
-//                            .element());
-//                }
-//
-//                if (result.getIssuer() != null) {
-//                    resultContent.appendChild(h(4, "Issuer").element());
-//                    resultContent.appendChild(p().add(
-//                            a().css("result")
-//                            .attr("href", result.getIssuer())
-//                            .attr("target", "_blank").add(result.getIssuer()))
-//                            .element());
-//                }
-//
-//                if (result.getTechnicalContact() != null) {
-//                    resultContent.appendChild(h(4, "Technical contact").element());
-//                    resultContent.appendChild(p().add(
-//                            a().css("result")
-//                            .attr("href", result.getTechnicalContact())
-//                            .attr("target", "_blank").add(result.getTechnicalContact()))
-//                            .element());
-//                }
-//
-//                if (result.getPrecursorVersion() != null) {
-//                    resultContent.appendChild(h(4, "Precursor version").element());
-//                    resultContent.appendChild(p().textContent(result.getPrecursorVersion()).element());
-//                }
-//                
-//                resultContainer.appendChild(resultContent);                
-//            }
-//        });
     }
     
     private void removeResults() {
@@ -508,6 +321,18 @@ public class App implements EntryPoint {
         }
     }
     
+    private void updateUrlLocation(String key, String value) {
+        URL url = new URL(DomGlobal.location.href);
+        String host = url.host;
+        String protocol = url.protocol;
+        String pathname = url.pathname;
+        URLSearchParams params = url.searchParams;
+        params.set(key, value);
+
+        String newUrl = protocol + "//" + host + pathname + "?" + params.toString(); 
+        updateUrlWithoutReloading(newUrl);
+    }
+
     // Update the URL in the browser without reloading the page.
     private static native void updateUrlWithoutReloading(String newUrl) /*-{
         $wnd.history.pushState(newUrl, "", newUrl);
