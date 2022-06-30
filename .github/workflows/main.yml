@@ -5,10 +5,87 @@ on:
   push:
 
 jobs:
-  build-jvm:
+  build-native:
     env:
       DOCKER_ACCOUNT: sogis
       DOCKER_REPO: modelfinder
+      DOCKER_PASSWORD: ${{secrets.DOCKER_PASSWORD}}
+      DOCKER_USERNAME: ${{secrets.DOCKER_USERNAME}} 
+      #DIGITALOCEAN_TOKEN: ${{secrets.DIGITALOCEAN_TOKEN}}
+      BUILD_NUMBER: ${{ github.run_number }}
+      VERSION: 0.0.${{ github.run_number }}
+
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - uses: actions/cache@v1
+        with:
+          path: ~/.m2/repository
+          key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
+          restore-keys: |
+            ${{ runner.os }}-maven-
+
+      - uses: graalvm/setup-graalvm@v1
+        with:
+          version: '22.1.0'
+          java-version: '11'
+          components: 'native-image'
+          native-image-musl: 'true'
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build native image
+        run: |
+          ./mvnw clean test
+          ./mvnw -DskipTests -Penv-prod,native package
+          ls -la modelfinder/target
+
+      - name: Set up QEMU for amd64
+        uses: docker/setup-qemu-action@v2
+        with:
+          platforms: linux/amd64
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
+
+      - name: Docker meta
+        id: meta
+        uses: docker/metadata-action@v4
+        with:
+          images: ${{ env.DOCKER_ACCOUNT }}/${{ env.DOCKER_REPO }}
+          labels: |
+            org.opencontainers.image.title=${{ env.DOCKER_REPO }}
+            org.opencontainers.image.version=${{ env.VERSION }}
+            org.opencontainers.image.base.name=docker.io/alpine:3.16
+          tags: |
+            type=raw,value=${{ env.VERSION }},enable=true,priority=200
+            type=raw,value=0.0,enable=true,priority=200
+            type=raw,value=0,enable=true,priority=200
+            type=raw,value=latest,enable=true,priority=200
+
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v2
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+        if: ${{ (github.ref == 'refs/heads/master') && (github.event_name != 'pull_request') && !env.ACT }}
+
+      - name: Multi-platform build and push
+        uses: docker/build-push-action@v2
+        with:
+          platforms: linux/amd64
+          context: modelfinder-server
+          file: modelfinder-server/Dockerfile.native-alpine
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          pull: true
+          push: ${{ (github.ref == 'refs/heads/master') && (github.event_name != 'pull_request') && !env.ACT }}
+
+  build-jvm:
+    env:
+      DOCKER_ACCOUNT: sogis
+      DOCKER_REPO: modelfinder-jvm
       DOCKER_PASSWORD: ${{secrets.DOCKER_PASSWORD}}
       DOCKER_USERNAME: ${{secrets.DOCKER_USERNAME}} 
       #DIGITALOCEAN_TOKEN: ${{secrets.DIGITALOCEAN_TOKEN}}
