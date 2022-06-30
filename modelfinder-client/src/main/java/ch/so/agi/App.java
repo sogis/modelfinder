@@ -54,6 +54,7 @@ public class App implements EntryPoint {
 
     private String pathname;
     private HTMLElement resultContent;
+    private boolean expanded = false;
 
     public void onModuleLoad() {
         init();
@@ -71,7 +72,14 @@ public class App implements EntryPoint {
         // Get search params to restrict search.
         Location location = DomGlobal.window.location;
         URLSearchParams searchParams = new URLSearchParams(location.search);
-        console.log(searchParams.get("ilisites"));
+        console.log(searchParams.get("expanded"));
+        
+        String paramExpanded = searchParams.get("expanded");
+        if (searchParams.has("expanded") && searchParams.get("expanded").toLowerCase() == "true") {
+            expanded = true;
+        }
+        
+        
         // TODO: on server exact match? nur ilisite?
         
         // Get pathname to handle url correctly for resources (e.g. logos and server requests)
@@ -119,6 +127,11 @@ public class App implements EntryPoint {
             .setOffTitle("OFF")
             .setOnTitle("ON")
             .setColor(Color.RED_DARKEN_3);
+        
+        if (expanded) {
+            switchButton.check(expanded);
+        }
+        
         topLevelContent.appendChild(switchButton.element());
         
         // Reset search: clear textbox, remove results, uncheck switch button.
@@ -297,78 +310,8 @@ public class App implements EntryPoint {
                             modelTable.appendChild(modelTableBody);
                             modelParagraph.appendChild(modelTable);
                             
-//                            <div style="overflow-x:auto;">
-//                            <table>
-//                            <colgroup>
-//                            <col span="1" style="width: 20%;"/>
-//                            <col span="1" style="width: 80%;"/>
-//                            </colgroup>
-//                            <tbody>
-//                            <tr>
-//                            <td>Beschreibung:</td>
-//                            <td>—</td>
-//                            </tr>
-//                            <tr>
-//                            <td>Version:</td>
-//                            <td>
-//                            <xsl:value-of select="ili:Version"/>
-//                            </td>
-//                            </tr>
-//                            <tr>
-//                            <td>Abhängigkeiten:</td>
-//                            <xsl:if test="count(ili:dependsOnModel/ili:IliRepository09.ModelName_) > 0">
-//                            <td>
-//                            <xsl:for-each select="ili:dependsOnModel/ili:IliRepository09.ModelName_">
-//                            <xsl:value-of select="ili:value"/>
-//                            <xsl:if test="position()!=last()">
-//                            <xsl:text>, </xsl:text>
-//                            </xsl:if>
-//                            </xsl:for-each>
-//                            </td>
-//                            </xsl:if>
-//                            <xsl:if test="count(ili:dependsOnModel/ili:IliRepository09.ModelName_) = 0">
-//                            <td>
-//                            <xsl:text>—</xsl:text>
-//                            </td>
-//                            </xsl:if>
-//                            </tr>
-//                            <tr>
-//                            <td>Fachamt:</td>
-//                            <td>
-//                            <xsl:element name="a">
-//                            <xsl:attribute name="class">
-//                            <xsl:text>default-link</xsl:text>
-//                            </xsl:attribute>
-//                            <xsl:attribute name="href">
-//                            <xsl:value-of select="ili:Issuer"/>
-//                            </xsl:attribute>
-//                            <xsl:value-of select="ili:Issuer"/>
-//                            </xsl:element>
-//                            </td>
-//                            </tr>
-//                            <tr>
-//                            <td>Technischer Kontakt:</td>
-//                            <td>
-//                            <xsl:element name="a">
-//                            <xsl:attribute name="class">
-//                            <xsl:text>default-link</xsl:text>
-//                            </xsl:attribute>
-//                            <xsl:attribute name="href">
-//                            <xsl:value-of select="ili:technicalContact"/>
-//                            </xsl:attribute>
-//                            <xsl:value-of select="ili:technicalContact"/>
-//                            </xsl:element>
-//                            </td>
-//                            </tr>
-//                            </tbody>
-//                            </table>
-//                            </div>
-
-                            
-
                             modelDetails.append(modelSummary, modelParagraph);
                             paragraph.append(modelDetails);
-                            
                         }
                                                 
 
@@ -564,4 +507,9 @@ public class App implements EntryPoint {
             resultContent.removeChild(resultContent.firstChild);
         }
     }
+    
+    // Update the URL in the browser without reloading the page.
+    private static native void updateUrlWithoutReloading(String newUrl) /*-{
+        $wnd.history.pushState(newUrl, "", newUrl);
+    }-*/;
 }

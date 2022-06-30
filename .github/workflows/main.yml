@@ -39,7 +39,7 @@ jobs:
         run: |
           ./mvnw -Pnative test
           ./mvnw -DskipTests -Penv-prod,native package
-          ls -la modelfinder/target
+          ls -la modelfinder-server/target
 
       - name: Set up QEMU for amd64
         uses: docker/setup-qemu-action@v2
