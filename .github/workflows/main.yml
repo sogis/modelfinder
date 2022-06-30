@@ -153,7 +153,7 @@ jobs:
           pull: true
           push: ${{ (github.ref == 'refs/heads/main') && (github.event_name != 'pull_request') && !env.ACT }}
 
-      # - name: Deploy to Digital Ocean App Platform
-      #   run: |
-      #     curl -X POST -H "Content-Type: application/json" -H "Authorization: Bearer $DIGITALOCEAN_TOKEN" "https://api.digitalocean.com/v2/apps/a07f64e0-a50e-4466-a34b-63c6dc952d93/deployments"
-      #   if: ${{ github.ref == 'refs/heads/main' }} 
+      - name: Deploy to Digital Ocean App Platform
+        run: |
+          curl -X POST -H "Content-Type: application/json" -H "Authorization: Bearer $DIGITALOCEAN_TOKEN" "https://api.digitalocean.com/v2/apps/b586dfd2-d262-41f7-b78a-fb1b1e77ca13/deployments"
+        if: ${{ (github.ref == 'refs/heads/main') && (github.event_name != 'pull_request') && !env.ACT }}
