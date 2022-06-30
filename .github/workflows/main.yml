@@ -37,7 +37,7 @@ jobs:
 
       - name: Build native image
         run: |
-          ./mvnw clean test
+          ./mvnw -Pnative test
           ./mvnw -DskipTests -Penv-prod,native package
           ls -la modelfinder/target
 
