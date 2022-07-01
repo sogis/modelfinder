@@ -17,6 +17,7 @@ import com.google.gwt.i18n.client.NumberFormat;
 
 import elemental2.core.Global;
 import elemental2.core.JsArray;
+import elemental2.dom.AbortController;
 import elemental2.dom.DomGlobal;
 import elemental2.dom.Element;
 import elemental2.dom.Event;
@@ -28,6 +29,7 @@ import elemental2.dom.HTMLParagraphElement;
 import elemental2.dom.HTMLTableElement;
 import elemental2.dom.HTMLTableSectionElement;
 import elemental2.dom.Location;
+import elemental2.dom.RequestInit;
 import elemental2.dom.URL;
 import elemental2.dom.URLSearchParams;
 import jsinterop.base.Js;
@@ -46,6 +48,8 @@ public class App implements EntryPoint {
     private HTMLElement resultContent;
     private boolean expanded = false;
     private String ilisite = "";
+
+    private AbortController abortController = null;
 
     public void onModuleLoad() {
         init();
@@ -161,8 +165,18 @@ public class App implements EntryPoint {
                 removeResults();          
                 return;
             }
-
-            DomGlobal.fetch(pathname + "search?query=" + textBox.getValue().toLowerCase() + "&ilisite=" + ilisite).then(response -> {
+            
+            if (abortController != null) {
+                abortController.abort();
+                //console.log("aborting previous request...");
+            }
+            
+            abortController = new AbortController();
+            final RequestInit init = RequestInit.create();
+            init.setSignal(abortController.signal);
+            
+            DomGlobal.fetch(pathname + "search?query=" + textBox.getValue().toLowerCase() + "&ilisite=" + ilisite, init)
+            .then(response -> {
                 if (!response.ok) {
                     return null;
                 }
@@ -307,9 +321,13 @@ public class App implements EntryPoint {
                         }
                     }
                 });
+                
+                abortController = null;
+
                 return null;
             }).catch_(error -> {
                 console.log(error);
+                abortController = null;
                 return null;
             });
         });
