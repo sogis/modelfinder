@@ -16,7 +16,7 @@ Ist `expanded=true` gesetzt, sind die INTERLIS-Modellablagen im Resultatefenster
 http://localhost:8080?expanded=true
 ```
 
-## ilisite
+### ilisite
 
 Mit `ilisite=<repo_name>` wird nur innerhalb dieser INTERLIS-Modellablage gesucht. Weil man (ich?) momentan die transitiven iliSite-Url nicht kennen kann, sondern anhand der Modelldatei-Url bloss den Domain-Namen, wird im Prinzip dieser verwendet.
 
@@ -24,6 +24,19 @@ Mit `ilisite=<repo_name>` wird nur innerhalb dieser INTERLIS-Modellablage gesuch
 http://localhost:8080?ilisite=models.geo.admin.ch
 ```
 
+### query
+Wir `query=<query string>` verwendet, kann direkt via URL gesucht/gefiltert werden. 
+
+```
+http://localhost:8080?query=wald
+```
+
+### nologo
+Mit `nologo=true` wird das Logo nicht gerendert. Bei allen anderen Werten als `true` wird das Logo gerendert.
+
+```
+http://localhost:8080?nologo=true
+```
 
 ## Develop
 First terminal:
