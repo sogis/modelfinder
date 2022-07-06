@@ -58,6 +58,10 @@ body, div {
 	display: list-item;
 }
 
+.repo-paragraph {
+    margin: 5px 0px 5px 0px;
+}
+
 .model-details {
     padding-left: 20px;
     padding-top: 10px;

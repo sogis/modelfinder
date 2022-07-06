@@ -202,6 +202,7 @@ public class App implements EntryPoint {
                         summary.appendChild(span().add(key + " (" + modelInfoArray.length + ")").element());
                         
                         HTMLParagraphElement paragraph = p().element(); 
+                        paragraph.className = "repo-paragraph";
                         
                         details.append(summary, paragraph);
                         resultContent.appendChild(details);
