@@ -168,7 +168,7 @@ public class App implements EntryPoint {
             
             if (abortController != null) {
                 abortController.abort();
-                //console.log("aborting previous request...");
+                console.log("aborting previous request...");
             }
             
             abortController = new AbortController();
