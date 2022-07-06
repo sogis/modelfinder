@@ -50,6 +50,7 @@ public class App implements EntryPoint {
     private boolean expanded = false;
     private String ilisite = "";
     private String query = null;
+    private boolean nologo = false;
 
     private AbortController abortController = null;
 
@@ -83,18 +84,24 @@ public class App implements EntryPoint {
             query = searchParams.get("query");            
         }
         
+        if (searchParams.has("nologo") && searchParams.get("nologo").toLowerCase() == "true") {
+            nologo = true;
+        }
+        
         // Get pathname to handle url correctly for resources (e.g. logos and server requests)
         pathname = location.pathname;
 
         if (pathname.contains("index.html")) {
             pathname = pathname.replace("index.html", "");
         }
-
+        
         // Add logo
-        HTMLElement logoDiv = div().css("logo")
-                .add(div()
-                        .add(img().attr("src", location.protocol + "//" + location.host + location.pathname + "Logo.png").attr("alt", "Logo Kanton")).element()).element();
-        container.appendChild(logoDiv);
+        if (nologo == false) {
+            HTMLElement logoDiv = div().css("logo")
+                    .add(div()
+                            .add(img().attr("src", location.protocol + "//" + location.host + location.pathname + "Logo.png").attr("alt", "Logo Kanton")).element()).element();
+            container.appendChild(logoDiv);
+        }
 
         // Content element for filter / search element and switch button.
         HTMLElement topLevelContent = div().id("top-level-content").element();
