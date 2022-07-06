@@ -28,6 +28,7 @@ import elemental2.dom.HTMLElement;
 import elemental2.dom.HTMLParagraphElement;
 import elemental2.dom.HTMLTableElement;
 import elemental2.dom.HTMLTableSectionElement;
+import elemental2.dom.KeyboardEvent;
 import elemental2.dom.Location;
 import elemental2.dom.RequestInit;
 import elemental2.dom.URL;
@@ -48,6 +49,7 @@ public class App implements EntryPoint {
     private HTMLElement resultContent;
     private boolean expanded = false;
     private String ilisite = "";
+    private String query = null;
 
     private AbortController abortController = null;
 
@@ -75,6 +77,10 @@ public class App implements EntryPoint {
         
         if (searchParams.has("ilisite")) {
              ilisite = searchParams.get("ilisite");
+        }
+        
+        if (searchParams.has("query")) {
+            query = searchParams.get("query");            
         }
         
         // Get pathname to handle url correctly for resources (e.g. logos and server requests)
@@ -105,7 +111,7 @@ public class App implements EntryPoint {
         textBox.addRightAddOn(resetIcon);
         
         topLevelContent.appendChild(div().id("filterbox-div").add(textBox).element());
-        
+                    
         // Switch button for toggling results.
         SwitchButton switchButton = SwitchButton.create("Expand results", "off", "on")
             .addChangeHandler(
@@ -136,11 +142,14 @@ public class App implements EntryPoint {
         topLevelContent.appendChild(switchButton.element());
         
         // Reset search: clear textbox, remove results, uncheck switch button.
+        // query is used as simple api for the user. The value of the query
+        // param is set in the textbox and a query is triggered.
         resetIcon.addEventListener("click", new EventListener() {
             @Override
             public void handleEvent(Event evt) {
                 textBox.clear();
                 removeResults();
+                removeQueryParam();
                 switchButton.uncheck();
             }
         });
@@ -155,16 +164,20 @@ public class App implements EntryPoint {
         
         // Search models in the lucene index on the server.
         // See pathname: should handle paths that are set in 
-        // reverse proxies and/or api gateways.
-        textBox.addEventListener("keyup", event -> {
+        // reverse proxies and/or api gateways.  
+                
+        textBox.addEventListener("keyup", event -> { 
             if (textBox.getValue().trim().length() > 0 && textBox.getValue().trim().length() <=2) {
                 return;
             }
             
             if (textBox.getValue().trim().length() == 0) {
-                removeResults();          
+                removeResults();  
+                removeQueryParam();
                 return;
             }
+            
+            updateUrlLocation("query", textBox.getValue().trim());
             
             if (abortController != null) {
                 abortController.abort();
@@ -335,12 +348,30 @@ public class App implements EntryPoint {
                 return null;
             });
         });
+        
+        // Im Suchfeld den Suchstring (aus query-Param) eintragen und keyup-Event auslösen, damit gesucht wird.
+        if (query != null && query != "") {
+            textBox.setValue(query);
+            textBox.element().dispatchEvent(new KeyboardEvent("keyup"));
+        }
     }
     
     private void removeResults() {
         while(resultContent.firstChild != null) {
             resultContent.removeChild(resultContent.firstChild);
-        }
+        }        
+    }
+    
+    private void removeQueryParam() {
+        URL url = new URL(DomGlobal.location.href);
+        String host = url.host;
+        String protocol = url.protocol;
+        String pathname = url.pathname;
+        URLSearchParams params = url.searchParams;
+        params.delete("query");
+        
+        String newUrl = protocol + "//" + host + pathname + "?" + params.toString(); 
+        updateUrlWithoutReloading(newUrl);
     }
     
     private void updateUrlLocation(String key, String value) {
@@ -350,7 +381,7 @@ public class App implements EntryPoint {
         String pathname = url.pathname;
         URLSearchParams params = url.searchParams;
         params.set(key, value);
-
+        
         String newUrl = protocol + "//" + host + pathname + "?" + params.toString(); 
         updateUrlWithoutReloading(newUrl);
     }
