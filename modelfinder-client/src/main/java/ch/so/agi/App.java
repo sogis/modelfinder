@@ -168,7 +168,6 @@ public class App implements EntryPoint {
             
             if (abortController != null) {
                 abortController.abort();
-                console.log("aborting previous request...");
             }
             
             abortController = new AbortController();
@@ -326,8 +325,12 @@ public class App implements EntryPoint {
 
                 return null;
             }).catch_(error -> {
-                console.log(error);
-                abortController = null;
+                //console.log(error);
+                
+                // Das war falsch. Das führt dazu, dass es einmalig funktioniert und bei
+                // weiteren darauffolgenden Abbrüchen nicht mehr funktioniert (oder
+                // dann nur bei jedem zweiten).
+                //abortController = null;
                 return null;
             });
         });
