@@ -14,7 +14,8 @@ server:
 # ========================
 logging:
   level:
-    org.springframework: ${LOG_LEVEL:INFO} 
+    org.springframework: ${LOG_LEVEL:INFO}
+    ch.so.agi.search: ${LOG_LEVEL_SEARCH:INFO} 
 
 spring:
   web:
