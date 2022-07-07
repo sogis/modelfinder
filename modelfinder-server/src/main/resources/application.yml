@@ -47,6 +47,8 @@ management:
 #    queryMaxRecords: ${LUCENE_QUERY_MAX_RECORDS:50}
 
 app:
+    connectTimeout: ${connectTimeout:2000}
+    readTimeout: ${readTimeout:8000}
     myVar: ${VAR:defaultValue}
     index-directory: ${indexDirectory:/tmp/}
     repositories:
