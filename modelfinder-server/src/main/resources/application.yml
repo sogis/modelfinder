@@ -15,7 +15,7 @@ server:
 logging:
   level:
     org.springframework: ${LOG_LEVEL:INFO}
-    ch.so.agi.search: ${LOG_LEVEL_SEARCH:INFO} 
+    ch.so.agi: ${LOG_LEVEL_AGI:INFO} 
 
 spring:
   web:
