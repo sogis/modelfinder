@@ -289,7 +289,7 @@ public class LuceneSearcher {
             }
             
             // Sorting: https://stackoverflow.com/questions/21965778/sorting-search-result-in-lucene-based-on-a-numeric-field
-            // Scheint noch bisse mühsam zu sein.
+            // Scheint noch bissle mühsam zu sein.
             // Eventuell muss man es eh ausserhalb machen, wenn wir noch gruppieren etc.
             if (queryString == null || queryString.trim().length() == 0) {
                 documents = indexSearcher.search(query, maxAllRecords);
