@@ -60,6 +60,19 @@ public class App implements EntryPoint {
     
     @SuppressWarnings("unchecked")
     public void init() {
+        // HTML document: used for creating html elements that are not
+        // available in elemento (e.g. summary, details).
+        HTMLDocument document = DomGlobal.document;
+        
+        // explain...
+        Element head = document.getElementsByTagName("head").getAt(0);
+        HTMLElement opensearchdescription = (HTMLElement) document.createElement("link");
+        opensearchdescription.setAttribute("rel", "search");
+        opensearchdescription.setAttribute("type", "application/opensearchdescription+xml");
+        opensearchdescription.setAttribute("href", "http://localhost:8080/opensearchdescription.xml");
+        opensearchdescription.setAttribute("title", "INTERLIS model finder");
+        head.appendChild(opensearchdescription);
+
         Theme theme = new Theme(ColorScheme.RED);
         theme.apply();
           
@@ -164,11 +177,7 @@ public class App implements EntryPoint {
         // Content element for search results.
         resultContent = div().id("result-content").element(); 
         container.appendChild(resultContent);
-        
-        // HTML document: used for creating html elements that are not
-        // available in elemento (e.g. summary, details).
-        HTMLDocument document = DomGlobal.document;
-        
+                
         // Search models in the lucene index on the server.
         // See pathname: should handle paths that are set in 
         // reverse proxies and/or api gateways.  

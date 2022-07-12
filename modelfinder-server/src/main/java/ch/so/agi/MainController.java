@@ -128,23 +128,22 @@ public class MainController {
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <OpenSearchDescription xmlns="http://a9.com/-/spec/opensearch/1.1/">
   <ShortName>INTERLIS model finder</ShortName>
-  <!--<Url type="text/html" method="get" template="%s/search?q={searchTerms}"/>-->
+  <Url type="text/html" method="get" template="%s?query={searchTerms}"/>
   <Url type="application/x-suggestions+json" method="get" template="%s/search/suggestions?q={searchTerms}"/>
   <LongName>INTERLIS model finder</LongName>
-  <Image height="16" width="16" type="image/x-icon">data:image/x-icon;base64,AAABAAEAEBAAAAEAIABoBAAAFgAAACgAAAAQAAAAIAAAAAEAIAAAAAAAAAQAAAAAAAAAAAAAAAAAAAAAAABxaUwAcWlMAHFpTABxaUwAcWlMAHFpTABxaUwAcWlMAHFpTABxaUwAcWlMAHFpTABxaUwAcWlMAHFpTABxaUwAcWlMAHFpTABxaUwAcWlMAHFpTAADJP8IAiL/NAEh/0kBIf9JAyP/JgMk/whxaUwAcWlMAHFpTABxaUwAcWlMAHFpTABxaUwAcWlMAAMk/wgBIf9dASD/vgUn/+cTM//4EzP/+AUn/+cBIP+rAiL/NHFpTABxaUwAcWlMAHFpTABxaUwAcWlMAAMk/wgBH/+OEzP/+G2A//++xv//3uL//9PY//+irv//PFX//wUn/+cBIf9dcWlMAHFpTABxaUwAcWlMAHFpTAABIP92EzP/+KKu///6+///7vD//8rR///T2P//+vv//+7w//9tgP//BSf/5wIi/zRxaUwAcWlMAHFpTAADI/8mBSf/546c///6+///sLr//zxV//8QMf//EDH//1Bn///e4v//7vD//1Bn//8BIP+rAyT/CHFpTABxaUwAASH/XSZC///e4v//09j//yZC//8CIv//AiL//wIi//8CIv//UGf///r7//+irv//BSf/5wMj/yZxaUwAcWlMAAEf/448Vf//+vv//46c//8CIv//AiL//wIi//8CIv//AiL//xAx///T2P//09j//xMz//gBIf9JcWlMAHFpTAABH/+OUGf///r7//+OnP//AiL//wIi//8CIv//AiL//wIi//8QMf//ytH//9PY//8TM//4ASH/SXFpTABxaUwAASD/diZC///u8P//vsb//xAx//8CIv//AiL//wIi//8CIv//PFX//+7w//+wuv//BSf/5wIi/zRxaUwAcWlMAAIi/zQFJ//noq7///r7//+OnP//EDH//wIi//8CIv//JkL//77G///6+///UGf//wEg/74DJP8IcWlMAHFpTABxaUwAAR//jiZC///K0f//+vv//8rR//+irv//oq7//97i///6+///jpz//xMz//gBIf9JcWlMAHFpTABxaUwAcWlMAAMk/xkBIP+rJkL//46c///e4v//+vv//+7w///T2P//bYD//xMz//gBIP92AyT/CHFpTABxaUwAcWlMAHFpTABxaUwAAyT/GQEf/44FJ//nJkL//zxV//88Vf//EzP/+AIi/84BIf9dAyT/CHFpTABxaUwAcWlMAHFpTABxaUwAcWlMAHFpTABxaUwAAyP/JgEh/10BIP92ASD/dgEh/0kDJP8ZcWlMAHFpTABxaUwAcWlMAHFpTABxaUwAcWlMAHFpTABxaUwAcWlMAHFpTABxaUwAcWlMAHFpTABxaUwAcWlMAHFpTABxaUwAcWlMAHFpTABxaUwA//8AAPgfAADgDwAAwAcAAMADAACAAQAAgAEAAIABAACAAQAAgAEAAIABAADAAwAAwAMAAOAHAAD4HwAA//8AAA==</Image>
+  <Image height="16" width="16" type="image/x-icon">data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAAMtJREFUeNpi/P//PwMhwOjaJQCkHKDYAFmOhYBGBSDVAMTxuNSw4NE8AUjlE3IdCw7nHgBifQYiAAsWzReAWJ6BSMCExWaiNaMYAA0sfQYSASMoGoG2g6JnPwMZgAXJdqJA0JcbDJq/3jJo/n7DcJ1VhIGRwaUTFNf3CWk0//GMoePtPgbpP58xXJBASLPLt/sM017vwBmIDvg08/37ydAJtBlfLBjgMyD+0yUG3n+/8BrAj9fvP58RnQ6wAs1fbygz4CkLL155gAADAPBrNaa8wGmqAAAAAElFTkSuQmCC</Image>
 </OpenSearchDescription>   
         """.formatted(getHost(), getHost());
         
         return new ResponseEntity<String>(xml, HttpStatus.OK);
     }
 
-    
     @GetMapping(value="/search/suggestions", produces = {MediaType.APPLICATION_JSON_VALUE})
     public ResponseEntity<?> suggestModels(@RequestParam(value="q", required=false) String searchTerms) {
         Result results = null;
 
         try {
-            results = searcher.searchIndex(searchTerms, null, 20, QUERY_MAX_ALL_RECORDS, false);
+            results = searcher.searchIndex(searchTerms, null, 50, QUERY_MAX_ALL_RECORDS, false);
             log.debug("Search for '" + searchTerms +"' found " + results.getAvailable() + " and retrieved " + results.getRetrieved() + " records");            
         } catch (LuceneSearcherException | InvalidLuceneQueryException e) {
             throw new IllegalStateException(e);
@@ -153,8 +152,15 @@ public class MainController {
         ArrayNode suggestions = objectMapper.createArrayNode();
         suggestions.add(searchTerms);
 
+        List<Map<String, String>> records = results.getRecords();   
         
-        log.info(suggestions.toPrettyString());
+        ArrayNode completions = objectMapper.createArrayNode();
+        records.forEach(it -> {
+           completions.add(it.get("name")); 
+        });
+        suggestions.add(completions);
+        log.debug(suggestions.toPrettyString());
+        
         return new ResponseEntity<JsonNode>(suggestions, HttpStatus.OK);
     }
     
