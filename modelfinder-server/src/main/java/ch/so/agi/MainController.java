@@ -79,7 +79,7 @@ public class MainController {
                 
         try {
             results = searcher.searchIndex(queryString, iliSite, QUERY_MAX_RECORDS, QUERY_MAX_ALL_RECORDS, false);
-            log.info("Search for '" + queryString +"' found " + results.getAvailable() + " and retrieved " + results.getRetrieved() + " records");            
+            log.debug("Search for '" + queryString +"' found " + results.getAvailable() + " and retrieved " + results.getRetrieved() + " records");            
         } catch (LuceneSearcherException | InvalidLuceneQueryException e) {
             throw new IllegalStateException(e);
         }

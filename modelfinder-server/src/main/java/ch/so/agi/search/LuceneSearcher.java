@@ -234,6 +234,7 @@ public class LuceneSearcher {
      */
     public Result searchIndex(String queryString, String iliSite, int numRecords, int maxAllRecords, boolean showAvailable)
             throws LuceneSearcherException, InvalidLuceneQueryException {
+        log.debug("queryString: {}, iliSite: {}", queryString, iliSite);
         IndexReader reader = null;
         IndexSearcher indexSearcher = null;
         Query query;
@@ -280,7 +281,7 @@ public class LuceneSearcher {
                 Query tmpQuery = queryParser.parse(luceneQueryString);
                 query = FunctionScoreQuery.boostByValue(tmpQuery, DoubleValuesSource.fromDoubleField("boost"));
                 
-                log.info("'" + luceneQueryString + "' ==> '" + query.toString() + "'");
+                log.debug("'" + luceneQueryString + "' ==> '" + query.toString() + "'");
             }
             
             if (showAvailable) {
@@ -308,9 +309,6 @@ public class LuceneSearcher {
                 }
                 mapList.add(docMap);
             }
-            
-            log.debug("mapList.size()", mapList.size());
-            log.debug("numRecords: ", numRecords);
             
             Result result = new Result(mapList, mapList.size(),
                     collector == null ? (mapList.size() < numRecords ? mapList.size() : -1) : collector.getTotalHits());
