@@ -186,7 +186,7 @@ public class LuceneSearcher {
         if (modelMetadata.getMd5() != null) {
             document.add(new TextField("md5", modelMetadata.getMd5(), Store.YES));
         }
-        
+       
         if (modelMetadata.getTags() != null) {
             document.add(new TextField("tag", modelMetadata.getTags(), Store.YES));
         }
@@ -253,8 +253,8 @@ public class LuceneSearcher {
                 String luceneQueryString = "";
                 String[] splitedQuery = queryString.split("\\s+");
                 for (int i=0; i<splitedQuery.length; i++) {
-                    String token = splitedQuery[i];
-                    log.debug("token: " + token);
+                    String token = QueryParser.escape(splitedQuery[i]);
+                    log.info("token: " + token);
                     
                     // TODO: tag und shortdescription auswerten.
                     
@@ -267,17 +267,19 @@ public class LuceneSearcher {
                             + "issuer:*" + token + "* OR "
                             + "technicalcontact:*" + token + "* OR "
                             + "furtherinformation:*" + token + "* OR "
-                            + "idgeoiv:" + token + "*^20 ";
+                            + "idgeoiv:" + token + "*^20";
                     luceneQueryString += ")";
                     if (i<splitedQuery.length-1) {
                         luceneQueryString += " AND ";
                     }
                     
                     if (iliSite != null && iliSite.trim().length() > 0) {
-                        luceneQueryString += " AND (repository: " + iliSite + "^100)";
+                        luceneQueryString += " AND (repository: " + QueryParser.escape(iliSite) + "^100)";
                     }
                 }
                             
+                //log.info("luceneQueryString: " + luceneQueryString);
+                
                 Query tmpQuery = queryParser.parse(luceneQueryString);
                 query = FunctionScoreQuery.boostByValue(tmpQuery, DoubleValuesSource.fromDoubleField("boost"));
                 

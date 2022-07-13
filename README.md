@@ -4,6 +4,9 @@
 
 Einfaches Suchen und Finden von INTERLIS-Datenmodellen. Es werden die Default-INTERLIS-Modellablagen und die damit verknüpften Ablagen auf Basis der jeweiligen _ilimodels.xml_-Datei. Siehe _LuceneSearcher.java_ zwecks Umfang und Struktur der Indexierung. 
 
+## Limitations
+- Bis ili2c V5.2.7 ist es nicht möglich die Repository-URL resp. iliSite-URL eines Modells zu kennen (https://github.com/claeis/ili2c/commit/fe72e6dee6bfd66017e2386f7a57091aaf94c128). Daraus folgt, dass man nicht exakt nach einem Repository gruppieren und eingrenzen kann. D.h. auch, dass `?ilisite=example.com/models` nicht funktioniert, weil momentan nur auf die Domain eines Repositories indexiert wird. Der korrekte Suchparameter müssten `?ilisite=example.com` lauten.
+
 ## Anleitung
 
 Die Anwendung kann vom Benutzer über zwei Query-Parameter gesteuert werden (z.B. über einen Bookmark):
@@ -85,5 +88,6 @@ Nach dem Hochfahren wird der Suchindex erstellt. Während des Erstellens ist die
 
 
 ## Todo
+- Prüfen, ob "escape" der URL reicht und die Modelle gefunden werden oder ob, z.B. bereits escaped indexiert werden muss.
 - Jar versioning? In Kombination mit Dockerimage (gh action workflow)
 - ...
