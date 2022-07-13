@@ -64,12 +64,24 @@ public class App implements EntryPoint {
         // available in elemento (e.g. summary, details).
         HTMLDocument document = DomGlobal.document;
         
-        // explain...
+        // Get pathname for various things, e.g. opensearch and other resources
+        Location location = DomGlobal.window.location;
+        pathname = location.pathname;
+
+        if (pathname.contains("index.html")) {
+            pathname = pathname.replace("index.html", "");
+        }
+
+        // This cannot be done in index.html since href depends
+        // on the url.
         Element head = document.getElementsByTagName("head").getAt(0);
         HTMLElement opensearchdescription = (HTMLElement) document.createElement("link");
         opensearchdescription.setAttribute("rel", "search");
         opensearchdescription.setAttribute("type", "application/opensearchdescription+xml");
-        opensearchdescription.setAttribute("href", "http://localhost:8080/opensearchdescription.xml");
+        
+        String host = location.host;
+        String protocol = location.protocol;
+        opensearchdescription.setAttribute("href", protocol + "//" + host + pathname + "opensearchdescription.xml");
         opensearchdescription.setAttribute("title", "INTERLIS model finder");
         head.appendChild(opensearchdescription);
 
@@ -81,10 +93,8 @@ public class App implements EntryPoint {
         body().add(container);        
 
         // Get search params to handle "switch expand button" and to restrict the search.
-        Location location = DomGlobal.window.location;
         URLSearchParams searchParams = new URLSearchParams(location.search);
         
-        String paramExpanded = searchParams.get("expanded");
         if (searchParams.has("expanded") && searchParams.get("expanded").toLowerCase() == "true") {
             expanded = true;
         }
@@ -100,14 +110,7 @@ public class App implements EntryPoint {
         if (searchParams.has("nologo") && searchParams.get("nologo").toLowerCase() == "true") {
             nologo = true;
         }
-        
-        // Get pathname to handle url correctly for resources (e.g. logos and server requests)
-        pathname = location.pathname;
-
-        if (pathname.contains("index.html")) {
-            pathname = pathname.replace("index.html", "");
-        }
-        
+                
         // Add logo
         if (nologo == false) {
             HTMLElement logoDiv = div().css("logo")
