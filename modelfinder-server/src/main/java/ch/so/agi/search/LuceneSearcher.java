@@ -254,7 +254,7 @@ public class LuceneSearcher {
                 String[] splitedQuery = queryString.split("\\s+");
                 for (int i=0; i<splitedQuery.length; i++) {
                     String token = QueryParser.escape(splitedQuery[i]);
-                    log.info("token: " + token);
+                    log.debug("token: " + token);
                     
                     // TODO: tag und shortdescription auswerten.
                     
