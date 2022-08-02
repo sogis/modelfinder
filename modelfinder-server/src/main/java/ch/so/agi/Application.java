@@ -9,10 +9,12 @@ import org.springframework.boot.web.servlet.ServletComponentScan;
 import org.springframework.boot.web.servlet.support.SpringBootServletInitializer;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.web.filter.ForwardedHeaderFilter;
 
 import ch.so.agi.search.LuceneSearcher;
 
+@EnableScheduling
 @SpringBootApplication
 @ServletComponentScan
 @Configuration
