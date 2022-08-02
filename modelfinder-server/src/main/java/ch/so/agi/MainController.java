@@ -171,6 +171,7 @@ public class MainController {
         
     @Scheduled(cron="0 */2 * * *")
     private void rebuildIndex() {
+        System.out.println("******************REINDEX...");
         try {
             searcher.createIndex();
         } catch (IOException e) {
