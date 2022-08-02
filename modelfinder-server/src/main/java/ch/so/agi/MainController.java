@@ -169,7 +169,8 @@ public class MainController {
         return ServletUriComponentsBuilder.fromCurrentContextPath().build().toUriString();
     }
         
-    @Scheduled(cron="0 */2 * * *")
+    //@Scheduled(cron="0 */2 * * *")
+    @Scheduled(cron="*/2 * * * *")
     private void rebuildIndex() {
         System.out.println("******************REINDEX...");
         try {
