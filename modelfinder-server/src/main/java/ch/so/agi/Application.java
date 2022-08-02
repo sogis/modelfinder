@@ -11,9 +11,25 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.web.filter.ForwardedHeaderFilter;
+import org.springframework.nativex.hint.TypeHint;
+import org.springframework.nativex.hint.TypeAccess;
 
 import ch.so.agi.search.LuceneSearcher;
 
+// Seems not to be necessary when building a musl image.
+@TypeHint(
+types = {org.springframework.http.converter.HttpMessageConverter[].class, 
+        org.springframework.boot.web.embedded.tomcat.TomcatProtocolHandlerCustomizer[].class,
+        org.springframework.boot.web.client.RestTemplateRequestCustomizer[].class,
+        com.fasterxml.jackson.databind.JsonSerializer[].class,
+        com.fasterxml.jackson.databind.JsonDeserializer[].class},
+access= {TypeAccess.DECLARED_METHODS, 
+    TypeAccess.DECLARED_FIELDS, 
+    TypeAccess.DECLARED_CONSTRUCTORS, 
+    TypeAccess.PUBLIC_METHODS,
+    TypeAccess.PUBLIC_FIELDS,
+    TypeAccess.PUBLIC_CONSTRUCTORS}               
+)
 @EnableScheduling
 @SpringBootApplication
 @ServletComponentScan
