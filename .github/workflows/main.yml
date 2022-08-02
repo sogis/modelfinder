@@ -32,7 +32,7 @@ jobs:
           version: '22.1.0'
           java-version: '17'
           components: 'native-image'
-          #native-image-musl: 'true'
+          native-image-musl: 'true'
           github-token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Build native image
@@ -57,7 +57,7 @@ jobs:
           labels: |
             org.opencontainers.image.title=${{ env.DOCKER_REPO }}
             org.opencontainers.image.version=${{ env.VERSION }}
-            org.opencontainers.image.base.name=quay.io/quarkus/quarkus-micro-image:1.0
+            org.opencontainers.image.base.name=docker.io/alpine:3.16
           tags: |
             type=raw,value=${{ env.VERSION }},enable=true,priority=200
             type=raw,value=0.0,enable=true,priority=200
@@ -76,8 +76,8 @@ jobs:
         with:
           platforms: linux/amd64
           context: modelfinder-server
-          #file: modelfinder-server/Dockerfile.native-alpine
-          file: modelfinder-server/Dockerfile.native-micro
+          file: modelfinder-server/Dockerfile.native-alpine
+          #file: modelfinder-server/Dockerfile.native-micro
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
           pull: true
