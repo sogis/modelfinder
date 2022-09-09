@@ -25,6 +25,7 @@ import org.apache.lucene.index.IndexReader;
 import org.apache.lucene.index.IndexWriter;
 import org.apache.lucene.index.IndexWriterConfig;
 import org.apache.lucene.index.IndexableField;
+import org.apache.lucene.index.MergePolicy;
 import org.apache.lucene.queries.function.FunctionScoreQuery;
 import org.apache.lucene.queryparser.classic.ParseException;
 import org.apache.lucene.queryparser.classic.QueryParser;
@@ -206,7 +207,38 @@ public class LuceneSearcher {
                 }
             }
         }
-
+        
+        String fileUrl = modelMetadata.getFile();
+        if (fileUrl.contains("geo.so")) {
+            document.add(new TextField("administration", "solothurn", Store.YES));
+        } else if (fileUrl.contains("geo.ai") || fileUrl.contains("geo.ar")) {
+            document.add(new TextField("administration", "appenzell", Store.YES));            
+        } else if (fileUrl.contains("geo.be")) {
+            document.add(new TextField("administration", "bern", Store.YES));            
+        } else if (fileUrl.contains("geo.bl") || fileUrl.contains("geo.bs")) {
+            document.add(new TextField("administration", "basel", Store.YES));            
+        } else if (fileUrl.contains("geo.gl")) {
+            document.add(new TextField("administration", "glarus", Store.YES));            
+        } else if (fileUrl.contains("geo.gr")) {
+            document.add(new TextField("administration", "graubünden", Store.YES));            
+        } else if (fileUrl.contains("geo.llv")) {
+            document.add(new TextField("administration", "liechenstein", Store.YES));            
+        } else if (fileUrl.contains("geo.lu")) {
+            document.add(new TextField("administration", "luzern", Store.YES));            
+        } else if (fileUrl.contains("geo.sg")) {
+            document.add(new TextField("administration", "st gallen", Store.YES));            
+        } else if (fileUrl.contains("geo.sh")) {
+            document.add(new TextField("administration", "schaffhausen", Store.YES));            
+        } else if (fileUrl.contains("geo.sz")) {
+            document.add(new TextField("administration", "schwyz", Store.YES));            
+        } else if (fileUrl.contains("geo.ti")) {
+            document.add(new TextField("administration", "tessin", Store.YES));            
+        } else if (fileUrl.contains("geo.zg")) {
+            document.add(new TextField("administration", "zug", Store.YES));            
+        } else if (fileUrl.contains("geo.zh")) {
+            document.add(new TextField("administration", "zürich", Store.YES));            
+        }
+        
         // TODO: whole model as text
 
         writer.addDocument(document);
