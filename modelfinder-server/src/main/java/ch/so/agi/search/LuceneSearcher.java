@@ -297,6 +297,7 @@ public class LuceneSearcher {
                             + "file:*" + token + "* OR "
                             + "title:*" + token + "* OR "
                             + "issuer:*" + token + "* OR "
+                            + "administration:*" + token + "* OR "
                             + "technicalcontact:*" + token + "* OR "
                             + "furtherinformation:*" + token + "* OR "
                             + "idgeoiv:" + token + "*^20";
